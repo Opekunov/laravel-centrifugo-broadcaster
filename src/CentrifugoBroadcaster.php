@@ -32,6 +32,7 @@ class CentrifugoBroadcaster extends Broadcaster
      * Authenticate the incoming request for a given channel.
      *
      * @param \Illuminate\Http\Request $request
+     *
      * @return mixed
      */
     public function auth($request)
@@ -68,7 +69,8 @@ class CentrifugoBroadcaster extends Broadcaster
      * Return the valid authentication response.
      *
      * @param \Illuminate\Http\Request $request
-     * @param mixed $result
+     * @param mixed                    $result
+     *
      * @return mixed
      */
     public function validAuthenticationResponse($request, $result)
@@ -79,9 +81,10 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param array $channels
+     * @param array  $channels
      * @param string $event
-     * @param array $payload
+     * @param array  $payload
+     *
      * @return void
      */
     public function broadcast(array $channels, $event, array $payload = [])
@@ -93,7 +96,7 @@ class CentrifugoBroadcaster extends Broadcaster
 
         $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
 
-        if (is_array($response) && ! isset($response['error'])) {
+        if (is_array($response) && !isset($response['error'])) {
             return;
         }
 
@@ -106,6 +109,7 @@ class CentrifugoBroadcaster extends Broadcaster
      * Get client from request.
      *
      * @param \Illuminate\Http\Request $request
+     *
      * @return string
      */
     private function getClientFromRequest($request)
@@ -117,6 +121,7 @@ class CentrifugoBroadcaster extends Broadcaster
      * Get channels from request.
      *
      * @param \Illuminate\Http\Request $request
+     *
      * @return array
      */
     private function getChannelsFromRequest($request)
@@ -130,6 +135,7 @@ class CentrifugoBroadcaster extends Broadcaster
      * Get channel name without $ symbol (if present).
      *
      * @param string $channel
+     *
      * @return string
      */
     private function getChannelName(string $channel)
@@ -141,6 +147,7 @@ class CentrifugoBroadcaster extends Broadcaster
      * Check channel name by $ symbol.
      *
      * @param string $channel
+     *
      * @return bool
      */
     private function isPrivateChannel(string $channel): bool
@@ -151,8 +158,9 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Make response for client, based on access rights.
      *
-     * @param bool $access_granted
+     * @param bool   $access_granted
      * @param string $client
+     *
      * @return array
      */
     private function makeResponseForClient(bool $access_granted, string $client)
@@ -170,10 +178,11 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Make response for client, based on access rights of private channel.
      *
-     * @param bool $accessGranted
+     * @param bool   $accessGranted
      * @param string $channel
      * @param string $client
-     * @param bool $showInfo
+     * @param bool   $showInfo
+     *
      * @return array
      */
     private function makeResponseForPrivateClient(bool $accessGranted, string $channel, string $client)
@@ -184,8 +193,8 @@ class CentrifugoBroadcaster extends Broadcaster
         return $accessGranted ? [
 
             'channel' => $channel,
-            'token' => $this->centrifugo->generatePrivateChannelToken($client, $channel, 0, $info),
-            'info' => $showInfo ? $this->centrifugo->info() : null,
+            'token'   => $this->centrifugo->generatePrivateChannelToken($client, $channel, 0, $info),
+            'info'    => $showInfo ? $this->centrifugo->info() : null,
 
         ] : [
             'status' => 403,
