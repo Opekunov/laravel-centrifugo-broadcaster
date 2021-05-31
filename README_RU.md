@@ -1,26 +1,38 @@
 <p align="center">Документация <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/README.md">EN</a> | <b>RU</b></p>
 
+<p align="center">
+<a href="https://github.com/Opekunov/laravel-centrifugo-broadcaster/releases"><img src="https://img.shields.io/github/release/Opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Latest Version"></a>
+<a href="https://packagist.org/packages/opekunov/laravel-centrifugo-broadcaster"><img src="https://img.shields.io/packagist/dt/opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Total Downloads"></a>
+<a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Software License"></a>
+</p>
+
 <h1 align="center">Laravel Centrifugo Broadcaster</h1>
 <h2 align="center">Centrifugo broadcast драйвер для Laravel 5.6 - 8 </h2>
 
-
 ## Введение
-Centrifugo broadcaster для laravel  это форк репозитория [laravel-centrifuge](https://github.com/denis660/laravel-centrifuge), based on:
+
+Centrifugo broadcaster для laravel это форк
+репозитория [laravel-centrifuge](https://github.com/denis660/laravel-centrifuge), based on:
+
 - [LaraComponents/centrifugo-broadcaster](https://github.com/LaraComponents/centrifugo-broadcaster)
 - [centrifugal/phpcent](https://github.com/centrifugal/phpcent)
 
 ## Особенности
+
 - Совместимость с последней версией [Centrifugo 2.8.5](https://github.com/centrifugal/centrifugo/releases/tag/v2.8.5) 🚀
 - Обертка над [Centrifugo HTTP API](https://centrifugal.github.io/centrifugo/server/http_api/) 🔌
-- Аутентификация с помощью токена JWT (HMAC алгоритм) для анонимного, авторизованного пользователя и приватного канала 🗝️
+- Аутентификация с помощью токена JWT (HMAC алгоритм) для анонимного, авторизованного пользователя и приватного канала
+  🗝️
 
 ## Требования
+
 - PHP >= 7.3
 - Framework Laravel 5.6 - 8
 - guzzlehttp/guzzle 6 - 7
 - Centrifugo Сервер 2.8.2 или новее (см. [здесь](https://github.com/centrifugal/centrifugo))
 
 ## Установка
+
 Установить через composer, выполнив команду в консоле:
 
 ```bash
@@ -47,7 +59,6 @@ return [
 ];
 ```
 
-
 Откройте ваш `config/broadcasting.php` и добавьте туда новое подключение:
 
 ```php
@@ -71,6 +82,7 @@ return [
 ```
 
 Также вы должны добавить эти две строчки в ваш `.env` файл:
+
 ```
 CENTRIFUGO_SECRET=token_hmac_secret_key-from-centrifugo-config
 CENTRIFUGO_APIKEY=api_key-from-centrifugo-config
@@ -120,12 +132,12 @@ Frontend. Смотрите документацию [centrifugal/centrifuge-js](
 
 ```js
 // устанавливаем базовый путь Laravel broadcasting 
-var config = { subscribeEndpoint: '/broadcasting/auth' };
+var config = {subscribeEndpoint: '/broadcasting/auth'};
 var centrifuge = new Centrifuge('wss://centrifuge.example.com//connection/websocket', config);
 
 // CONNECTION_TOKEN необходимо получить через generateConnectionToken()
 centrifuge.setToken("CONNECTION_TOKEN");
-var subscription = centrifuge.subscribe("$private:channel", function (ctx){
+var subscription = centrifuge.subscribe("$private:channel", function (ctx) {
 		console.log('ctx');
 });
 
@@ -135,6 +147,7 @@ centrifuge.connect();
 ### Пример вещания
 
 Создайте событие (для примера - SendMessage) с помощью artisan `php artisan make:event SendMessageEvent`
+
 ```php
 <?php
 // App/Events/SendMessageEvent.php
@@ -253,7 +266,7 @@ class ExampleController
 | presenceStats(string $channel) | Получите краткую информацию о канале (количество клиентов).|
 | history(string $channel) | Получить информацию об истории канала (список последних сообщений, отправленных в канал). |
 | historyRemove(string $channel) | Удалить информацию из истории канала. |
-| unsubscribe(string $channel,  string $user) | Отписать пользователя от канала. |
+| unsubscribe(string $channel, string $user) | Отписать пользователя от канала. |
 | disconnect(string $user_id) | Отключить пользователя по его ID. |
 | channels() | Cписок текущих активных каналов. |
 | info() | Статистическая информация о запущенных серверных узлах. |
@@ -262,4 +275,6 @@ class ExampleController
 
 ## Лицензия
 
-Лицензия MIT. Пожалуйста прочитайте [Файл лицензии](https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE) для получения дополнительной информации.
+Лицензия MIT. Пожалуйста
+прочитайте [Файл лицензии](https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE) для получения
+дополнительной информации.

@@ -1,8 +1,13 @@
 <p align="center">Documentation <b>EN</b> | <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/README_RU.md">RU</a></p>
 
+<p align="center">
+<a href="https://github.com/Opekunov/laravel-centrifugo-broadcaster/releases"><img src="https://img.shields.io/github/release/Opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Latest Version"></a>
+<a href="https://packagist.org/packages/opekunov/laravel-centrifugo-broadcaster"><img src="https://img.shields.io/packagist/dt/opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Total Downloads"></a>
+<a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Software License"></a>
+</p>
+
 <h1 align="center">Laravel Centrifugo Broadcaster</h1>
 <h2 align="center">Centrifugo broadcast driver for Laravel 5.6 - 8 </h2>
-
 
 ## Introduction
 
@@ -126,12 +131,12 @@ Frontend. See documentation [centrifugal/centrifuge-js](https://github.com/centr
 
 ```js
 // set default Laravel broadcasting auth path 
-var config = { subscribeEndpoint: '/broadcasting/auth' };
+var config = {subscribeEndpoint: '/broadcasting/auth'};
 var centrifuge = new Centrifuge('wss://centrifuge.example.com//connection/websocket', config);
 
 // CONNECTION_TOKEN must be obtained via generateConnectionToken ()
 centrifuge.setToken("CONNECTION_TOKEN");
-var subscription = centrifuge.subscribe("$private:channel", function (ctx){
+var subscription = centrifuge.subscribe("$private:channel", function (ctx) {
 		console.log('ctx');
 });
 
@@ -141,6 +146,7 @@ centrifuge.connect();
 ### Broadcasting example
 
 Create event (for example SendMessage) with artisan `php artisan make:event SendMessageEvent`
+
 ```php
 <?php
 // App/Events/SendMessageEvent.php
@@ -268,5 +274,5 @@ class ExampleController
 
 ## License
 
-The MIT License (MIT). Please see [License File](https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE for
-more information.
+The MIT License (MIT). Please
+see [License File](https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE for more information.
