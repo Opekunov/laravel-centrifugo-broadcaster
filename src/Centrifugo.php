@@ -363,6 +363,6 @@ class Centrifugo implements CentrifugoInterface
      */
     public function showNodeInfo(): bool
     {
-        return (bool) $this->config['show_info'];
+        return (bool) $this->config['show_node_info'];
     }
 }
