@@ -277,4 +277,4 @@ class ExampleController
 ## License
 
 The MIT License (MIT). Please
-see [License File](https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE for more information.
+see [License File](https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE) for more information.
