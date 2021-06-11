@@ -100,10 +100,10 @@ class CentrifugoBroadcaster extends Broadcaster
             return;
         }
 
-		throw new BroadcastException(
-			$response['error'] instanceof Exception ? $response['error']->getMessage() : $response['error']['message'],
-			$response['error'] instanceof Exception ? $response['error']->getCode() : $response['error']['code'],
-		);
+        throw new BroadcastException(
+            $response['error'] instanceof Exception ? $response['error']->getMessage() : $response['error']['message'],
+            $response['error'] instanceof Exception ? $response['error']->getCode() : $response['error']['code'],
+        );
     }
 
     /**
