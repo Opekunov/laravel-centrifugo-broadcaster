@@ -135,7 +135,7 @@ Frontend. Смотрите документацию [centrifugal/centrifuge-js](
 ```js
 // устанавливаем базовый путь Laravel broadcasting 
 var config = {subscribeEndpoint: '/broadcasting/auth'};
-var centrifuge = new Centrifuge('wss://centrifuge.example.com//connection/websocket', config);
+var centrifuge = new Centrifuge('wss://centrifuge.example.com/connection/websocket', config);
 
 // CONNECTION_TOKEN необходимо получить через generateConnectionToken()
 centrifuge.setToken("CONNECTION_TOKEN");

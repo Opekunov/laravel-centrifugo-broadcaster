@@ -134,7 +134,7 @@ Frontend. See documentation [centrifugal/centrifuge-js](https://github.com/centr
 ```js
 // set default Laravel broadcasting auth path 
 var config = {subscribeEndpoint: '/broadcasting/auth'};
-var centrifuge = new Centrifuge('wss://centrifuge.example.com//connection/websocket', config);
+var centrifuge = new Centrifuge('wss://centrifuge.example.com/connection/websocket', config);
 
 // CONNECTION_TOKEN must be obtained via generateConnectionToken ()
 centrifuge.setToken("CONNECTION_TOKEN");
