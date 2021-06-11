@@ -32,7 +32,12 @@ class Centrifugo implements CentrifugoInterface
     public function __construct(array $config = null, HttpClient $httpClient = null)
     {
         $this->httpClient = $httpClient ?? new HttpClient();
-        $this->config = $this->initConfiguration($config) ?? app()->make('config')->get('broadcasting.connections.centrifugo');
+		if (!$config) {
+			$this->config = app()->make('config')->get('broadcasting.connections.centrifugo');
+		} else {
+			$this->config = $this->initConfiguration($config ?? []) ??
+				app()->make('config')->get('broadcasting.connections.centrifugo');
+		}
     }
 
     /**
