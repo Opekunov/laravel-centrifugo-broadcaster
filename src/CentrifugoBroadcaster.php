@@ -91,7 +91,7 @@ class CentrifugoBroadcaster extends Broadcaster
     {
         $payload['event'] = $event;
         $channels = array_map(function ($channel) {
-            return str_replace('private-', '$', (string)$channel);
+            return str_replace('private-', '$', (string) $channel);
         }, $channels);
 
         $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
