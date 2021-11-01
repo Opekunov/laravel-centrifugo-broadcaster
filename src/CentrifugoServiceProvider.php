@@ -7,6 +7,7 @@ namespace Opekunov\Centrifugo;
 use GuzzleHttp\Client as HttpClient;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Support\ServiceProvider;
+use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
 
 class CentrifugoServiceProvider extends ServiceProvider
 {
@@ -36,7 +37,7 @@ class CentrifugoServiceProvider extends ServiceProvider
             return new Centrifugo($config, $http);
         });
 
-        $this->app->alias('centrifugo', 'Opekunov\Centrifugo\Centrifugo');
-        $this->app->alias('centrifugo', 'Opekunov\Centrifugo\Contracts\Centrifugo');
+        $this->app->alias('centrifugo', Centrifugo::class);
+        $this->app->alias('centrifugo', CentrifugoInterface::class);
     }
 }
