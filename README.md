@@ -27,8 +27,8 @@ based on:
 
 ## Requirements
 
-- PHP >= 7.3
-- Laravel 5.6 - 9.x
+- PHP >= 7.4
+- Laravel 8.75 - 9.x
 - guzzlehttp/guzzle 6 - 7
 - Centrifugo Server 2.8.2 or newer (see [here](https://github.com/centrifugal/centrifugo))
 
