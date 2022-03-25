@@ -9,7 +9,7 @@
 </p>
 
 <h1 align="center">Laravel Centrifugo Broadcaster</h1>
-<h2 align="center">Centrifugo broadcast driver for Laravel 5.6 - 8 </h2>
+<h2 align="center">Centrifugo broadcast driver for Laravel 8.75 - 9.x </h2>
 
 ## Introduction
 
