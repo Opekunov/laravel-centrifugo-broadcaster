@@ -21,14 +21,14 @@ based on:
 
 ## Features
 
-- Compatible with latest [Centrifugo 2.8.5](https://github.com/centrifugal/centrifugo/releases/tag/v2.8.5) 🚀
+- Compatible with latest [Centrifugo 3.1.x](https://github.com/centrifugal/centrifugo/) 🚀
 - Wrapper over [Centrifugo HTTP API](https://centrifugal.github.io/centrifugo/server/http_api/) 🔌
 - Authentication with JWT token (HMAC algorithm) for anonymous, authenticated user and private channel 🗝️
 
 ## Requirements
 
 - PHP >= 7.3
-- Laravel 5.6 - 8
+- Laravel 5.6 - 9.x
 - guzzlehttp/guzzle 6 - 7
 - Centrifugo Server 2.8.2 or newer (see [here](https://github.com/centrifugal/centrifugo))
 
@@ -74,7 +74,8 @@ return [
             'url'     => env('CENTRIFUGO_URL', 'http://localhost:8000'), // centrifugo api url
             'verify'  => env('CENTRIFUGO_VERIFY', false), // Verify host ssl if centrifugo uses this
             'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Self-Signed SSl Key for Host (require verify=true),
-            'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false) // Show node info in response with auth token
+            'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false), // Show node info in response with auth token
+            'timeout' => env('CENTRIFUGO_TIMEOUT', 10), // Float describing the total timeout of the request to websocket in seconds. Use 0 to wait indefinitely (the default is 10)
         ],
         
        // .... //
@@ -96,6 +97,7 @@ These lines are optional:
 CENTRIFUGO_SSL_KEY=/etc/ssl/some.pem
 CENTRIFUGO_VERIFY=false
 CENTRIFUGO_SHOW_NODE_INFO=false
+CENTRIFUGO_TIMEOUT=10
 ```
 
 Don't forget to change `BROADCAST_DRIVER` setting in .env file!

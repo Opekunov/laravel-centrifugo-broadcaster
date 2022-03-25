@@ -1,7 +1,7 @@
 {
   "name": "opekunov/laravel-centrifugo-broadcaster",
   "type": "library",
-  "description": "Centrifugo broadcaster for laravel 5.6-8 and Centrifugo >= 2.8.1",
+  "description": "Centrifugo broadcaster for laravel 5.6-9.x and Centrifugo >= 2.8.1",
   "keywords": [
     "laravel-broadcaster",
     "broadcaster",
@@ -23,12 +23,12 @@
   "homepage": "https://github.com/opekunov/laravel-centrifugo-broadcaster",
   "support": {
     "email": "iam@opekunov.com",
-    "issues": "https://github.com/denis660/laravel-centrifugo-broadcaster/issues",
-    "source": "https://github.com/denis660/laravel-centrifugo-broadcaster"
+    "issues": "https://github.com/opekunov/laravel-centrifugo-broadcaster/issues",
+    "source": "https://github.com/opekunov/laravel-centrifugo-broadcaster"
   },
   "require": {
     "php": "^7.3|^8.0",
-    "laravel/framework": "^5.6|^6.0|^7.0|^8.0",
+    "laravel/framework": "^5.6|^6.0|^7.0|^8.0|^9.0",
     "guzzlehttp/guzzle": "~6.0|^7.0"
   },
   "require-dev": {

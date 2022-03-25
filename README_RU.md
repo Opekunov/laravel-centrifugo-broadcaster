@@ -21,7 +21,7 @@ Centrifugo broadcaster для laravel это форк
 
 ## Особенности
 
-- Совместимость с последней версией [Centrifugo 2.8.5](https://github.com/centrifugal/centrifugo/releases/tag/v2.8.5) 🚀
+- Совместимость с последней версией [Centrifugo 3.1.x](https://github.com/centrifugal/centrifugo/) 🚀
 - Обертка над [Centrifugo HTTP API](https://centrifugal.github.io/centrifugo/server/http_api/) 🔌
 - Аутентификация с помощью токена JWT (HMAC алгоритм) для анонимного, авторизованного пользователя и приватного канала
   🗝️
@@ -29,7 +29,7 @@ Centrifugo broadcaster для laravel это форк
 ## Требования
 
 - PHP >= 7.3
-- Framework Laravel 5.6 - 8
+- Framework Laravel 5.6 - 9.x
 - guzzlehttp/guzzle 6 - 7
 - Centrifugo Сервер 2.8.2 или новее (см. [здесь](https://github.com/centrifugal/centrifugo))
 
@@ -75,7 +75,8 @@ return [
             'url'     => env('CENTRIFUGO_URL', 'http://localhost:8000'), // centrifugo api url
             'verify'  => env('CENTRIFUGO_VERIFY', false), // Verify host ssl if centrifugo uses this
             'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Self-Signed SSl Key for Host (require verify=true),
-            'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false) // Show node info in response with auth token
+            'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false), // Show node info in response with auth token
+            'timeout' => env('CENTRIFUGO_TIMEOUT', 10), // Float describing the total timeout of the request to websocket in seconds. Use 0 to wait indefinitely (the default is 10)
         ],
         
        // .... //
@@ -97,6 +98,7 @@ CENTRIFUGO_URL=http://localhost:8000
 CENTRIFUGO_SSL_KEY=/etc/ssl/some.pem
 CENTRIFUGO_VERIFY=false
 CENTRIFUGO_SHOW_NODE_INFO=false
+CENTRIFUGO_TIMEOUT=10
 ```
 
 Не забудьте изменить параметр `BROADCAST_DRIVER` в файле .env!
