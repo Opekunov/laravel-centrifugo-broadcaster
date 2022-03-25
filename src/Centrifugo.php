@@ -56,7 +56,7 @@ class Centrifugo implements CentrifugoInterface
             'ssl_key'        => null,
             'verify'         => true,
             'show_node_info' => false,
-			'timeout'        => 10
+            'timeout'        => 10,
         ];
 
         foreach ($config as $key => $value) {
@@ -286,7 +286,7 @@ class Centrifugo implements CentrifugoInterface
 
         $headers = [
             'Content-type'  => 'application/json',
-            'Authorization' => 'apikey ' . $this->config['apikey'],
+            'Authorization' => 'apikey '.$this->config['apikey'],
         ];
 
         try {
@@ -295,8 +295,8 @@ class Centrifugo implements CentrifugoInterface
             $config = collect([
                 'headers'     => $headers,
                 'body'        => $json,
-                'http_errors' => true, 
-				'timeout'     => $this->config['timeout']
+                'http_errors' => true,
+                'timeout'     => $this->config['timeout'],
             ]);
 
             if ($url['scheme'] == 'https') {
