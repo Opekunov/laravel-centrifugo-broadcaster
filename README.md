@@ -261,20 +261,21 @@ class ExampleController
 
 ### Available methods
 
-| Name | Description |
-|------|-------------|
-| publish(string $channel, array $data) | Send message into channel. |
-| broadcast(array $channels, array $data) | Send message into multiple channel. |
-| presence(string $channel) | Get channel presence information (all clients currently subscribed on this channel). |
-| presenceStats(string $channel) | Get channel presence information in short form (number of clients).|
-| history(string $channel) | Get channel history information (list of last messages sent into channel). |
-| historyRemove(string $channel) | Remove channel history information.
-| unsubscribe(string $channel, string $user) | Unsubscribe user from channel. |
-| disconnect(string $user_id) | Disconnect user by it's ID. |
-| channels() | Get channels information (list of currently active channels). |
-| info() | Get stats information about running server nodes. |
-| generateConnectionToken(string $userId, int $exp, array $info)  | Generate connection token. |
-| generatePrivateChannelToken(string $client, string $channel, int $exp, array $info) | Generate private channel token. |
+| Name                                                                                | Description                                                                           |
+|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| publish(string $channel, array $data)                                               | Send message into channel.                                                            |
+| broadcast(array $channels, array $data)                                             | Send message into multiple channel.                                                   |
+| publishMany(array $data)                                                            | Send multiple data to multiple channels. $data - array of data arrays [channel, data] |
+| presence(string $channel)                                                           | Get channel presence information (all clients currently subscribed on this channel).  |
+| presenceStats(string $channel)                                                      | Get channel presence information in short form (number of clients).                   |
+| history(string $channel)                                                            | Get channel history information (list of last messages sent into channel).            |
+| historyRemove(string $channel)                                                      | Remove channel history information.                                                   
+| unsubscribe(string $channel, string $user)                                          | Unsubscribe user from channel.                                                        |
+| disconnect(string $user_id)                                                         | Disconnect user by it's ID.                                                           |
+| channels()                                                                          | Get channels information (list of currently active channels).                         |
+| info()                                                                              | Get stats information about running server nodes.                                     |
+| generateConnectionToken(string $userId, int $exp, array $info)                      | Generate connection token.                                                            |
+| generatePrivateChannelToken(string $client, string $channel, int $exp, array $info) | Generate private channel token.                                                       |
 
 ## License
 

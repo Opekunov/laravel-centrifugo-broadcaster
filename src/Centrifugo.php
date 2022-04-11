@@ -26,7 +26,7 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Create a new Centrifugo instance.
      *
-     * @param array              $config
+     * @param array $config
      * @param \GuzzleHttp\Client $httpClient
      */
     public function __construct(array $config = null, HttpClient $httpClient = null)
@@ -50,13 +50,13 @@ class Centrifugo implements CentrifugoInterface
     protected function initConfiguration(array $config)
     {
         $defaults = [
-            'url'            => 'http://localhost:8000',
-            'secret'         => null,
-            'apikey'         => null,
-            'ssl_key'        => null,
-            'verify'         => true,
+            'url' => 'http://localhost:8000',
+            'secret' => null,
+            'apikey' => null,
+            'ssl_key' => null,
+            'verify' => true,
             'show_node_info' => false,
-            'timeout'        => 10,
+            'timeout' => 10,
         ];
 
         foreach ($config as $key => $value) {
@@ -72,7 +72,7 @@ class Centrifugo implements CentrifugoInterface
      * Send message into channel.
      *
      * @param string $channel
-     * @param array  $data
+     * @param array $data
      *
      * @return mixed
      */
@@ -80,8 +80,21 @@ class Centrifugo implements CentrifugoInterface
     {
         return $this->send('publish', [
             'channel' => $channel,
-            'data'    => $data,
+            'data' => $data,
         ]);
+    }
+
+    /**
+     * Send multiple message into multiple channel
+     *
+     * @param array $params Example: [ ['channel' => 'channel:1', 'data' => 'Hello'],
+     *                      ['channel' => 'channel:2', 'data' => 'World']]
+     *
+     * @return array|mixed
+     */
+    public function publishMany(array $params)
+    {
+        return $this->sendMany('publish', $params);
     }
 
     /**
@@ -98,6 +111,7 @@ class Centrifugo implements CentrifugoInterface
 
         return $this->send('broadcast', $params);
     }
+
 
     /**
      * Get channel presence information (all clients currently subscribed on this channel).
@@ -161,7 +175,7 @@ class Centrifugo implements CentrifugoInterface
     {
         return $this->send('unsubscribe', [
             'channel' => $channel,
-            'user'    => $user,
+            'user' => $user,
         ]);
     }
 
@@ -174,7 +188,7 @@ class Centrifugo implements CentrifugoInterface
      */
     public function disconnect(string $user_id)
     {
-        return $this->send('disconnect', ['user' => (string) $user_id]);
+        return $this->send('disconnect', ['user' => (string)$user_id]);
     }
 
     /**
@@ -200,9 +214,9 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Generate connection token.
      *
-     * @param string     $userId
+     * @param string $userId
      * @param int|Carbon $exp
-     * @param array      $info
+     * @param array $info
      *
      * @return string
      */
@@ -232,10 +246,10 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Generate private channel token.
      *
-     * @param string     $client
-     * @param string     $channel
+     * @param string $client
+     * @param string $channel
      * @param int|Carbon $exp
-     * @param array      $info
+     * @param array $info
      *
      * @return string
      */
@@ -276,7 +290,7 @@ class Centrifugo implements CentrifugoInterface
      * Send message to centrifugo server.
      *
      * @param string $method
-     * @param array  $params
+     * @param array $params
      *
      * @return mixed
      */
@@ -284,19 +298,52 @@ class Centrifugo implements CentrifugoInterface
     {
         $json = json_encode(['method' => $method, 'params' => $params]);
 
+        return $this->sendData($method, $json);
+    }
+
+    /**
+     * Send many messages per one request to centrifugo server
+     *
+     * @param       $method
+     * @param array $params
+     *
+     * @return array|mixed
+     */
+    protected function sendMany($method, array $params = [])
+    {
+        $json = '';
+        foreach ($params as $param) {
+            $json .= json_encode(['method' => $method, 'params' => $param]) . "\r\n";
+        }
+        $json = trim($json);
+
+        return $this->sendData($method, $json);
+    }
+
+    /**
+     * Send json data to centrifugo server.
+     *
+     * @param string $method
+     * @param array $params
+     *
+     * @return mixed
+     */
+    protected function sendData(string $method, string $json)
+    {
+
         $headers = [
-            'Content-type'  => 'application/json',
-            'Authorization' => 'apikey '.$this->config['apikey'],
+            'Content-type' => 'application/json',
+            'Authorization' => 'apikey ' . $this->config['apikey'],
         ];
 
         try {
             $url = parse_url($this->prepareUrl());
 
             $config = collect([
-                'headers'     => $headers,
-                'body'        => $json,
+                'headers' => $headers,
+                'body' => $json,
                 'http_errors' => true,
-                'timeout'     => $this->config['timeout'],
+                'timeout' => $this->config['timeout'],
             ]);
 
             if ($url['scheme'] == 'https') {
@@ -309,12 +356,12 @@ class Centrifugo implements CentrifugoInterface
 
             $response = $this->httpClient->post($this->prepareUrl(), $config->toArray());
 
-            $result = json_decode((string) $response->getBody(), true);
+            $result = json_decode((string)$response->getBody(), true);
         } catch (ClientException $e) {
             $result = [
                 'method' => $method,
-                'error'  => $e->getMessage(),
-                'body'   => $params,
+                'error' => $e->getMessage(),
+                'body' => $json,
             ];
         }
 
@@ -370,6 +417,6 @@ class Centrifugo implements CentrifugoInterface
      */
     public function showNodeInfo(): bool
     {
-        return (bool) $this->config['show_node_info'];
+        return (bool)$this->config['show_node_info'];
     }
 }

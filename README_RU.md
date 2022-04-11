@@ -262,20 +262,21 @@ class ExampleController
 
 ### Методы
 
-| Название | Описание |
-|------|-------------|
-| publish(string $channel, array $data) | Отправка сообщения в канал |
-| broadcast(array $channels, array $data) | Отправить сообщение в несколько каналов. |
+| Название | Описание                                                                                            |
+|------|-----------------------------------------------------------------------------------------------------|
+| publish(string $channel, array $data) | Отправка сообщения в канал                                                                          |
+| broadcast(array $channels, array $data) | Отправить сообщение в несколько каналов.                                                            |
+| publishMany(array $data)                                                            | Отправка нескольких сообщений на несколько каналов. $data - массив массивов данных [канал, данные]  |
 | presence(string $channel) | Получите информацию о присутствии в канале (все клиенты в настоящее время подписаны на этот канал). |
-| presenceStats(string $channel) | Получите краткую информацию о канале (количество клиентов).|
-| history(string $channel) | Получить информацию об истории канала (список последних сообщений, отправленных в канал). |
-| historyRemove(string $channel) | Удалить информацию из истории канала. |
-| unsubscribe(string $channel, string $user) | Отписать пользователя от канала. |
-| disconnect(string $user_id) | Отключить пользователя по его ID. |
-| channels() | Cписок текущих активных каналов. |
-| info() | Статистическая информация о запущенных серверных узлах. |
-| generateConnectionToken(string $userId, int $exp, array $info)  | Генерация токена для подключения |
-| generatePrivateChannelToken(string $client, string $channel, int $exp, array $info) | Генерация приватного токена для приватного канала |
+| presenceStats(string $channel) | Получите краткую информацию о канале (количество клиентов).                                         |
+| history(string $channel) | Получить информацию об истории канала (список последних сообщений, отправленных в канал).           |
+| historyRemove(string $channel) | Удалить информацию из истории канала.                                                               |
+| unsubscribe(string $channel, string $user) | Отписать пользователя от канала.                                                                    |
+| disconnect(string $user_id) | Отключить пользователя по его ID.                                                                   |
+| channels() | Cписок текущих активных каналов.                                                                    |
+| info() | Статистическая информация о запущенных серверных узлах.                                             |
+| generateConnectionToken(string $userId, int $exp, array $info)  | Генерация токена для подключения                                                                    |
+| generatePrivateChannelToken(string $client, string $channel, int $exp, array $info) | Генерация приватного токена для приватного канала                                                   |
 
 ## Лицензия
 
