@@ -7,6 +7,8 @@ namespace Opekunov\Centrifugo;
 use Carbon\Carbon;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\TransferException;
 use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
 
 class Centrifugo implements CentrifugoInterface
@@ -51,12 +53,14 @@ class Centrifugo implements CentrifugoInterface
     {
         $defaults = [
             'url'            => 'http://localhost:8000',
+            'api_path'       => '/api',
             'secret'         => null,
             'apikey'         => null,
             'ssl_key'        => null,
             'verify'         => true,
             'show_node_info' => false,
-            'timeout'        => 10,
+            'timeout'        => 3,
+            'tries'          => 1
         ];
 
         foreach ($config as $key => $value) {
@@ -192,12 +196,12 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Get channels information (list of currently active channels).
-     *
+     * @param string $pattern Pattern to filter channels
      * @return mixed
      */
-    public function channels()
+    public function channels(string $pattern = '')
     {
-        return $this->send('channels');
+        return $this->send('channels', ["pattern" => $pattern]);
     }
 
     /**
@@ -352,7 +356,9 @@ class Centrifugo implements CentrifugoInterface
                 }
             }
 
-            $response = $this->httpClient->post($this->prepareUrl(), $config->toArray());
+            $tries = $this->config['tries'] ?? 1;
+
+            $response = $this->postRequest($this->prepareUrl(), $config->toArray(), $tries);
 
             $result = json_decode((string) $response->getBody(), true);
         } catch (ClientException $e) {
@@ -367,6 +373,28 @@ class Centrifugo implements CentrifugoInterface
     }
 
     /**
+     * Send request to centrifugo API
+     *
+     * @param string $url
+     * @param array $configs
+     * @param int $tries
+     * @param int $retriesCounter
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    private function postRequest(string $url, array $configs, int $tries = 1, int $retriesCounter = 0){
+        try {
+            return $this->httpClient->post($url, $configs);
+        } catch (ClientException|TransferException|ConnectException $e) {
+            ++$retriesCounter;
+            if($retriesCounter < $tries)
+                return $this->postRequest($url, $configs, $tries, $retriesCounter);
+
+            throw $e;
+        }
+    }
+
+    /**
      * Prepare URL to send the http request.
      *
      * @return string
@@ -374,9 +402,10 @@ class Centrifugo implements CentrifugoInterface
     protected function prepareUrl()
     {
         $address = rtrim($this->config['url'], '/');
+        $apiPath = $this->config['api_path'] ?? self::API_PATH;
 
-        if (substr_compare($address, static::API_PATH, -strlen(static::API_PATH)) !== 0) {
-            $address .= static::API_PATH;
+        if (substr_compare($address, $apiPath, -strlen($apiPath)) !== 0) {
+            $address .= $apiPath;
         }
         //$address .= '/';
 

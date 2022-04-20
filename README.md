@@ -71,11 +71,13 @@ return [
             'driver' => 'centrifugo',
             'secret'  => env('CENTRIFUGO_SECRET'),
             'apikey'  => env('CENTRIFUGO_APIKEY'),
+            'api_path' => env('CENTRIFUGO_API_PATH', '/api'), // Centrifugo api endpoint (default '/api')
             'url'     => env('CENTRIFUGO_URL', 'http://localhost:8000'), // centrifugo api url
             'verify'  => env('CENTRIFUGO_VERIFY', false), // Verify host ssl if centrifugo uses this
             'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Self-Signed SSl Key for Host (require verify=true),
             'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false), // Show node info in response with auth token
-            'timeout' => env('CENTRIFUGO_TIMEOUT', 10), // Float describing the total timeout of the request to websocket in seconds. Use 0 to wait indefinitely (the default is 10)
+            'timeout' => env('CENTRIFUGO_TIMEOUT', 3), // Float describing the total timeout of the request to centrifugo api in seconds. Use 0 to wait indefinitely (the default is 3)
+            'tries' => env('CENTRIFUGO_TRIES', 1) //Number of times to repeat the request, in case of failure (the default is 1)
         ],
         
        // .... //

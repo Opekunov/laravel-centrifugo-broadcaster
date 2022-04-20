@@ -72,11 +72,13 @@ return [
             'driver' => 'centrifugo',
             'secret'  => env('CENTRIFUGO_SECRET'),
             'apikey'  => env('CENTRIFUGO_APIKEY'),
-            'url'     => env('CENTRIFUGO_URL', 'http://localhost:8000'), // centrifugo api url
-            'verify'  => env('CENTRIFUGO_VERIFY', false), // Verify host ssl if centrifugo uses this
-            'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Self-Signed SSl Key for Host (require verify=true),
-            'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false), // Show node info in response with auth token
-            'timeout' => env('CENTRIFUGO_TIMEOUT', 10), // Float describing the total timeout of the request to websocket in seconds. Use 0 to wait indefinitely (the default is 10)
+            'api_path' => env('CENTRIFUGO_API_PATH', '/api'), // Centrifugo api endpoint (по умолчанию '/api')
+            'url'     => env('CENTRIFUGO_URL', 'http://localhost:8000'), // Centrifugo api url
+            'verify'  => env('CENTRIFUGO_VERIFY', false), // Проверка ssl хоста если centrifugo использует его
+            'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Самоподписанный SSl ключ для хоста (require verify=true),
+            'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false), // Показывать информацию о ноде в ответе
+            'timeout' => env('CENTRIFUGO_TIMEOUT', 3), // Общее время ожидания запроса к centrifugo api в секундах (по умолчанию 3)
+            'tries' => env('CENTRIFUGO_TRIES', 1) //Количество повторов запроса в случае неудачи (по умолчанию 1)
         ],
         
        // .... //
