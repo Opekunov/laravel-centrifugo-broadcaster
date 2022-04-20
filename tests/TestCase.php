@@ -8,7 +8,7 @@ use Opekunov\Centrifugo\CentrifugoServiceProvider;
 class TestCase extends \Orchestra\Testbench\TestCase
 {
     /**
-     * @var Centrifugo $centrifuge
+     * @var Centrifugo
      */
     protected $centrifuge;
 
@@ -32,7 +32,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'driver' => 'centrifugo',
             'secret' => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
             'apikey' => '0c951315-be0e-4516-b99e-05e60b0cc307',
-            'url' => 'http://localhost:8000',
+            'url'    => 'http://localhost:8000',
         ]);
     }
 }

@@ -60,7 +60,7 @@ class Centrifugo implements CentrifugoInterface
             'verify'         => true,
             'show_node_info' => false,
             'timeout'        => 3,
-            'tries'          => 1
+            'tries'          => 1,
         ];
 
         foreach ($config as $key => $value) {
@@ -196,12 +196,14 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Get channels information (list of currently active channels).
+     *
      * @param string $pattern Pattern to filter channels
+     *
      * @return mixed
      */
     public function channels(string $pattern = '')
     {
-        return $this->send('channels', ["pattern" => $pattern]);
+        return $this->send('channels', ['pattern' => $pattern]);
     }
 
     /**
@@ -373,22 +375,26 @@ class Centrifugo implements CentrifugoInterface
     }
 
     /**
-     * Send request to centrifugo API
+     * Send request to centrifugo API.
      *
      * @param string $url
-     * @param array $configs
-     * @param int $tries
-     * @param int $retriesCounter
-     * @return mixed
+     * @param array  $configs
+     * @param int    $tries
+     * @param int    $retriesCounter
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
+     *
+     * @return mixed
      */
-    private function postRequest(string $url, array $configs, int $tries = 1, int $retriesCounter = 0){
+    private function postRequest(string $url, array $configs, int $tries = 1, int $retriesCounter = 0)
+    {
         try {
             return $this->httpClient->post($url, $configs);
         } catch (ClientException|TransferException|ConnectException $e) {
-            ++$retriesCounter;
-            if($retriesCounter < $tries)
+            $retriesCounter++;
+            if ($retriesCounter < $tries) {
                 return $this->postRequest($url, $configs, $tries, $retriesCounter);
+            }
 
             throw $e;
         }
