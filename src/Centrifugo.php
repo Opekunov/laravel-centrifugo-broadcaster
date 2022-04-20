@@ -358,7 +358,7 @@ class Centrifugo implements CentrifugoInterface
                 }
             }
 
-            $tries = $this->config['tries'] ?? 1;
+            $tries = intval($this->config['tries'] ?? 1);
 
             $response = $this->postRequest($this->prepareUrl(), $config->toArray(), $tries);
 
