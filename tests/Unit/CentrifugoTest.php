@@ -13,7 +13,7 @@ class CentrifugoTest extends \Opekunov\Centrifugo\Tests\TestCase
         $user_id = 1;
         $info = [
             'first_name' => 'Aleksandr',
-            'last_name' => 'Opekunov',
+            'last_name'  => 'Opekunov',
         ];
         $client = '0c951315-be0e-4516-b99e-05e60b0cc317';
 
@@ -45,16 +45,16 @@ class CentrifugoTest extends \Opekunov\Centrifugo\Tests\TestCase
             'result' => [
                 'responses' => [
                     ['result' => []],
-                    ['result' => []]
-                ]
-            ]
+                    ['result' => []],
+                ],
+            ],
         ], $broadcast);
     }
 
     public function testCentrifugoApiPresence()
     {
         $presence = $this->centrifuge->presence('test-channel');
-        $this->assertEquals(['result' => ["presence" => []]], $presence);
+        $this->assertEquals(['result' => ['presence' => []]], $presence);
     }
 
     public function testCentrifugoApiHistory()
@@ -89,8 +89,8 @@ class CentrifugoTest extends \Opekunov\Centrifugo\Tests\TestCase
         $this->assertEquals([
             'result' => [
                 'num_clients' => 0,
-                'num_users' => 0
-            ]
+                'num_users'   => 0,
+            ],
         ], $stats);
     }
 
@@ -101,27 +101,28 @@ class CentrifugoTest extends \Opekunov\Centrifugo\Tests\TestCase
 
         $badCentrifugo = new Centrifugo(
             [
-                'driver' => 'centrifugo',
-                'secret' => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
-                'apikey' => '0c951315-be0e-4516-b99e-05e60b0cc307_',
+                'driver'   => 'centrifugo',
+                'secret'   => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
+                'apikey'   => '0c951315-be0e-4516-b99e-05e60b0cc307_',
                 'api_path' => '',
-                'url' => 'https://httpstat.us/200?sleep=20000',
-                'timeout' => $timeout,
-                'tries' => 1
+                'url'      => 'https://httpstat.us/200?sleep=20000',
+                'timeout'  => $timeout,
+                'tries'    => 1,
             ]
         );
 
         $start = microtime(true);
         $this->expectException(ConnectException::class);
+
         try {
             $badCentrifugo->publish('test-channel', ['event' => 'test-event']);
         } catch (\Exception $e) {
             $end = microtime(true);
             $eval = $end - $start;
             $this->assertTrue($eval < $timeout + $delta);
+
             throw $e;
         }
-
     }
 
     public function testTriesFunction()
@@ -132,27 +133,27 @@ class CentrifugoTest extends \Opekunov\Centrifugo\Tests\TestCase
 
         $badCentrifugo = new Centrifugo(
             [
-                'driver' => 'centrifugo',
-                'secret' => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
-                'apikey' => '0c951315-be0e-4516-b99e-05e60b0cc307_',
+                'driver'   => 'centrifugo',
+                'secret'   => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
+                'apikey'   => '0c951315-be0e-4516-b99e-05e60b0cc307_',
                 'api_path' => '',
-                'url' => 'https://httpstat.us/200?sleep=20000',
-                'timeout' => $timeout,
-                'tries' => $tries
+                'url'      => 'https://httpstat.us/200?sleep=20000',
+                'timeout'  => $timeout,
+                'tries'    => $tries,
             ]
         );
 
         $start = microtime(true);
         $this->expectException(ConnectException::class);
+
         try {
             $badCentrifugo->publish('test-channel', ['event' => 'test-event']);
         } catch (\Exception $e) {
             $end = microtime(true);
             $eval = $end - $start;
             $this->assertTrue($eval < ($timeout + $delta) * $tries);
+
             throw $e;
         }
-
     }
-
 }
