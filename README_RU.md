@@ -99,8 +99,10 @@ CENTRIFUGO_URL=http://localhost:8000
 ```
 CENTRIFUGO_SSL_KEY=/etc/ssl/some.pem
 CENTRIFUGO_VERIFY=false
+CENTRIFUGO_API_PATH=/api
 CENTRIFUGO_SHOW_NODE_INFO=false
 CENTRIFUGO_TIMEOUT=10
+CENTRIFUGO_TRIES=1
 ```
 
 Не забудьте изменить параметр `BROADCAST_DRIVER` в файле .env!

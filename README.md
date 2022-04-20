@@ -98,8 +98,10 @@ These lines are optional:
 ```
 CENTRIFUGO_SSL_KEY=/etc/ssl/some.pem
 CENTRIFUGO_VERIFY=false
+CENTRIFUGO_API_PATH=/api
 CENTRIFUGO_SHOW_NODE_INFO=false
 CENTRIFUGO_TIMEOUT=10
+CENTRIFUGO_TRIES=1
 ```
 
 Don't forget to change `BROADCAST_DRIVER` setting in .env file!
