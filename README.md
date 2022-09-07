@@ -11,6 +11,8 @@
 <h1 align="center">Laravel Centrifugo 4 Broadcaster</h1>
 <h2 align="center">Centrifugo 4 broadcast driver for Laravel 8.75 - 9.x </h2>
 
+> For Centrifugo 2.8 - 3.x use [version 1.2.6](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/master)
+
 ## Features
 
 - Compatible with latest [Centrifugo 4.x](https://github.com/centrifugal/centrifugo/) 🚀
@@ -23,9 +25,7 @@
 - Laravel 8.75 - 9.x
 - guzzlehttp/guzzle 6 - 7
 - Centrifugo Server 4.x or newer (see [here](https://github.com/centrifugal/centrifugo))
-
-> For Centrifugo 2.8 - 3.x use [version 1.2.6](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/master)
-> 
+ 
 ## Installation
 
 Require this package with composer:
@@ -298,7 +298,7 @@ class ExampleController
 | presence(string $channel)                                                                                                             | Get channel presence information (all clients currently subscribed on this channel).  |
 | presenceStats(string $channel)                                                                                                        | Get channel presence information in short form (number of clients).                   |
 | history(string $channel)                                                                                                              | Get channel history information (list of last messages sent into channel).            |
-| historyRemove(string $channel)                                                                                                        | Remove channel history information.                                                   
+| historyRemove(string $channel)                                                                                                        | Remove channel history information.                                                   |
 | unsubscribe(string $channel, string $user)                                                                                            | Unsubscribe user from channel.                                                        |
 | disconnect(string $userId)                                                                                                            | Disconnect user by it's ID.                                                           |
 | channels()                                                                                                                            | Get channels information (list of currently active channels).                         |
