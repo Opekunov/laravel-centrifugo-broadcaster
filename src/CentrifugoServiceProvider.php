@@ -14,7 +14,7 @@ class CentrifugoServiceProvider extends ServiceProvider
     /**
      * Add centrifugo broadcaster.
      *
-     * @param  BroadcastManager  $broadcastManager
+     * @param BroadcastManager $broadcastManager
      */
     public function boot(BroadcastManager $broadcastManager)
     {
