@@ -2,7 +2,6 @@
 
 namespace Opekunov\Centrifugo\Tests\Unit;
 
-use GuzzleHttp\Exception\ConnectException;
 use Opekunov\Centrifugo\Centrifugo;
 use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
 use Opekunov\Centrifugo\Tests\TestCase;

@@ -12,7 +12,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Str;
 use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
 use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
 use Opekunov\Centrifugo\Exceptions\CentrifugoException;
@@ -27,7 +26,7 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Create a new broadcaster instance.
      *
-     * @param  Centrifugo  $centrifugo
+     * @param Centrifugo $centrifugo
      */
     public function __construct(Centrifugo $centrifugo)
     {
@@ -37,7 +36,7 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Authenticate the incoming request for a given channel.
      *
-     * @param  Request  $request
+     * @param Request $request
      *
      * @return Application|ResponseFactory|Response
      */
@@ -53,8 +52,8 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Return the valid authentication response.
      *
-     * @param  Request  $request
-     * @param  mixed  $result
+     * @param Request $request
+     * @param mixed   $result
      *
      * @return mixed
      */
@@ -66,19 +65,20 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param  array  $channels
-     * @param  string  $event
-     * @param  array  $payload
+     * @param array  $channels
+     * @param string $event
+     * @param array  $payload
      *
-     * @return void
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
+     *
+     * @return void
      */
     public function broadcast(array $channels, $event, array $payload = []): void
     {
         $payload['event'] = $event;
         $channels = array_map(function ($channel) {
-            return str_replace('private-', '', (string)$channel);
+            return str_replace('private-', '', (string) $channel);
         }, $channels);
 
         $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
@@ -96,8 +96,8 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Make response for client, based on access rights of private channel.
      *
-     * @param  string  $channel
-     * @param  string  $userId
+     * @param string $channel
+     * @param string $userId
      *
      * @return array
      */
