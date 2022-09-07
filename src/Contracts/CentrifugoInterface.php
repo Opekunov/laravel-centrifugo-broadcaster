@@ -4,124 +4,43 @@ declare(strict_types=1);
 
 namespace Opekunov\Centrifugo\Contracts;
 
+use Carbon\Carbon;
+
 interface CentrifugoInterface
 {
-    /**
-     * Send message into channel.
-     *
-     * @param string $channel
-     * @param array  $data
-     *
-     * @return mixed
-     */
-    public function publish(string $channel, array $data);
+    public function publish(string $channel, array $data): array;
 
-    /**
-     * Send message into multiple channel.
-     *
-     * @param array $channels
-     * @param array $data
-     *
-     * @return mixed
-     */
-    public function broadcast(array $channels, array $data);
+    public function broadcast(array $channels, array $data): array;
 
-    /**
-     * Get channel presence information (all clients currently subscribed to this channel).
-     *
-     * @param string $channel
-     *
-     * @return mixed
-     */
-    public function presence(string $channel);
+    public function presence(string $channel): array;
 
-    /**
-     * Get channel presence information in short form (number of clients currently subscribed to this channel).
-     *
-     * @param string $channel
-     *
-     * @return mixed
-     */
-    public function presenceStats(string $channel);
+    public function presenceStats(string $channel): array;
 
-    /**
-     * Get channel history information (list of last messages sent into channel).
-     *
-     * @param string $channel
-     *
-     * @return mixed
-     */
-    public function history(string $channel);
+    public function history(string $channel): array;
 
-    /**
-     * Remove channel history information .
-     *
-     * @param string $channel
-     *
-     * @return mixed
-     */
-    public function historyRemove(string $channel);
+    public function historyRemove(string $channel): array;
 
-    /**
-     * Unsubscribe user from channel.
-     *
-     * @param string $channel
-     * @param string $user
-     *
-     * @return mixed
-     */
-    public function unsubscribe(string $channel, string $user);
+    public function unsubscribe(string $channel, string $user): array;
 
-    /**
-     * Disconnect user by its ID.
-     *
-     * @param string $user_id
-     *
-     * @return mixed
-     */
-    public function disconnect(string $user_id);
+    public function disconnect(string $userId): array;
 
-    /**
-     * Get channels information (list of currently active channels).
-     *
-     * @return mixed
-     */
-    public function channels();
+    public function channels(): array;
 
-    /**
-     * Get stats information about running server nodes.
-     *
-     * @return mixed
-     */
-    public function info();
+    public function info(): array;
 
-    /**
-     * Generate connection token.
-     *
-     * @param string $userId
-     * @param int    $exp
-     * @param array  $info
-     *
-     * @return string
-     */
-    public function generateConnectionToken(string $userId = '', int $exp = 0, array $info = []);
+    public function generateSubscriptionToken(
+        string|int $userId,
+        string $channel,
+        int|Carbon $exp = 0,
+        array $info = [],
+        array $override = []
+    ): string;
 
-    /**
-     * Generate private channel token.
-     *
-     * @param string $client
-     * @param string $channel
-     * @param int    $exp
-     * @param array  $info
-     *
-     * @return string
-     */
-    public function generatePrivateChannelToken(string $client, string $channel, int $exp = 0, array $info = []);
+    public function generateConnectionToken(
+        string|int $userId,
+        int|Carbon $exp = 0,
+        array $info = [],
+    ): string;
 
-    /**
-     * Can show Node info when return auth token.
-     *
-     * @return bool
-     */
     public function showNodeInfo(): bool;
 }

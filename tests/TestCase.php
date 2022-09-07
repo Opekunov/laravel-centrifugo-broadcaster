@@ -10,7 +10,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * @var Centrifugo
      */
-    protected $centrifuge;
+    protected Centrifugo $centrifuge;
 
     public function setUp(): void
     {
@@ -30,9 +30,9 @@ class TestCase extends \Orchestra\Testbench\TestCase
         $app['config']->set('broadcasting.default', 'centrifugo');
         $app['config']->set('broadcasting.connections.centrifugo', [
             'driver' => 'centrifugo',
-            'secret' => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
-            'apikey' => '0c951315-be0e-4516-b99e-05e60b0cc307',
-            'url'    => 'http://localhost:8000',
+            'secret' => 'bbe7d157-a253-4094-9759-06a8236543f9',
+            'apikey' => 'd7627bb6-2292-4911-82e1-615c0ed3eebb',
+            'url'    => 'http://host.docker.internal:8001',
         ]);
     }
 }
