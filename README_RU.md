@@ -38,7 +38,7 @@ Centrifugo broadcaster для laravel это форк
 Установить через composer, выполнив команду в консоле:
 
 ```bash
-composer req opekunov/laravel-centrifugo-broadcaster
+composer req opekunov/laravel-centrifugo-broadcaster:1.2.6
 ```
 
 Откройте ваш `config/app.php` и добавьте следующее в раздел providers:
