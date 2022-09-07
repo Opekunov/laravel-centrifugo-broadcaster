@@ -1,4 +1,4 @@
-<p align="center">Документация <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/README.md">EN</a> | <b>RU</b></p>
+<p align="center">Документация <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/2.x/README.md">EN</a> | <b>RU</b></p>
 
 <p align="center">
 <a href="https://github.com/Opekunov/laravel-centrifugo-broadcaster/releases"><img src="https://img.shields.io/github/release/Opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Latest Version"></a>
