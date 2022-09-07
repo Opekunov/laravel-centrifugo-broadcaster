@@ -153,7 +153,7 @@ const sub = centrifuge.newSubscription('test:test', {
 
 // Получение токена подписки от вашего Laravel приложения.
 // Важно! В этом примере получение токена подписки реализуется через базовый fetch() без передачи параметров для идентификации пользователя в вашем Laravel приложении. Используйте методы подходящие вашему приложению
-function getToken(endpoint, ctx) {
+function customGetToken(endpoint, ctx) {
   return new Promise((resolve, reject) => {
     fetch(endpoint, {
       method: 'POST',

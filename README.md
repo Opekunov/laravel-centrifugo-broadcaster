@@ -151,7 +151,7 @@ const sub = centrifuge.newSubscription('test:test', {
 
 // Getting a subscription token from your Laravel application.
 // Important: In this example, getting a subscription token is implemented through basic fetch() without passing parameters to identify the user in your Laravel application. Use methods appropriate for your application
-function getToken(endpoint, ctx) {
+function customGetToken(endpoint, ctx) {
   return new Promise((resolve, reject) => {
     fetch(endpoint, {
       method: 'POST',
