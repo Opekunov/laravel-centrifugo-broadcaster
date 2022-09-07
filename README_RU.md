@@ -8,30 +8,24 @@
 <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Software License"></a>
 </p>
 
-<h1 align="center">Laravel Centrifugo Broadcaster</h1>
-<h2 align="center">Centrifugo broadcast драйвер для Laravel 8.75 - 9.x </h2>
-
-## Введение
-
-Centrifugo broadcaster для laravel это форк
-репозитория [laravel-centrifuge](https://github.com/denis660/laravel-centrifuge), based on:
-
-- [LaraComponents/centrifugo-broadcaster](https://github.com/LaraComponents/centrifugo-broadcaster)
-- [centrifugal/phpcent](https://github.com/centrifugal/phpcent)
+<h1 align="center">Laravel Centrifugo 4 Broadcaster</h1>
+<h2 align="center">Centrifugo 4 broadcast драйвер для Laravel 8.75 - 9.x </h2>
 
 ## Особенности
 
-- Совместимость с последней версией [Centrifugo 3.1.x](https://github.com/centrifugal/centrifugo/) 🚀
-- Обертка над [Centrifugo HTTP API](https://centrifugal.github.io/centrifugo/server/http_api/) 🔌
-- Аутентификация с помощью токена JWT (HMAC алгоритм) для анонимного, авторизованного пользователя и приватного канала
-  🗝️
+- Совместимость с последней версией [Centrifugo 4.x](https://github.com/centrifugal/centrifugo/) 🚀
+- Обертка над [Centrifugo HTTP API](https://centrifugal.dev/docs/server/server_api/) 🔌
+- Аутентификация с помощью токена JWT (HMAC) 🗝️
 
 ## Требования
 
-- PHP >= 7.4
+- PHP >= 8.0
 - Laravel 8.75 - 9.x
 - guzzlehttp/guzzle 6 - 7
-- Centrifugo Сервер 2.8.2 или новее (см. [здесь](https://github.com/centrifugal/centrifugo))
+- Centrifugo Сервер 4.x или новее (см. [здесь](https://github.com/centrifugal/centrifugo))
+
+> Для Centrifugo 2.8 - 3.x
+> используйте [версию 1.2.6](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/master)
 
 ## Установка
 
@@ -41,18 +35,15 @@ Centrifugo broadcaster для laravel это форк
 composer req opekunov/laravel-centrifugo-broadcaster
 ```
 
-Откройте ваш `config/app.php` и добавьте следующее в раздел providers:
+Откройте ваш `config/app.php` и раскомментируйте следующую строку:
 
 ```php
 return [
 
     // .... //
     
-    'providers' => [
-        // Add service provider ( Laravel 5.4 or below )
-        Opekunov\Centrifugo\CentrifugoServiceProvider::class,
-    
-        // And uncomment BroadcastServiceProvider
+    'providers' => [    
+        // Uncomment BroadcastServiceProvider
         App\Providers\BroadcastServiceProvider::class,
     ],
     
@@ -61,7 +52,7 @@ return [
 ];
 ```
 
-Откройте ваш `config/broadcasting.php` и добавьте туда новое подключение:
+Откройте ваш `config/broadcasting.php` и добавьте туда новое подключение (`connections`):
 
 ```php
 return [
@@ -78,7 +69,8 @@ return [
             'ssl_key' => env('CENTRIFUGO_SSL_KEY', null), // Самоподписанный SSl ключ для хоста (require verify=true),
             'show_node_info' => env('CENTRIFUGO_SHOW_NODE_INFO', false), // Показывать информацию о ноде в ответе
             'timeout' => env('CENTRIFUGO_TIMEOUT', 3), // Общее время ожидания запроса к centrifugo api в секундах (по умолчанию 3)
-            'tries' => env('CENTRIFUGO_TRIES', 1) //Количество повторов запроса в случае неудачи (по умолчанию 1)
+            'tries' => env('CENTRIFUGO_TRIES', 1), //Количество повторов запроса в случае неудачи (по умолчанию 1)
+            'token_expire_time' => env('CENTRIFUGO_TOKEN_EXPIRE', 120), //Базовое время, через которое истечет токен. Используется в подписках на каналы /broadcasting/auth
         ],
         
        // .... //
@@ -103,6 +95,7 @@ CENTRIFUGO_API_PATH=/api
 CENTRIFUGO_SHOW_NODE_INFO=false
 CENTRIFUGO_TIMEOUT=10
 CENTRIFUGO_TRIES=1
+CENTRIFUGO_TOKEN_EXPIRE=120
 ```
 
 Не забудьте изменить параметр `BROADCAST_DRIVER` в файле .env!
@@ -113,24 +106,24 @@ BROADCAST_DRIVER=centrifugo
 
 ## Базовое использование
 
-Настройте ваш сервер Centrifugo, детальнее в [официальной документации](https://centrifugal.github.io/centrifugo/)
+Настройте ваш сервер Centrifugo, детальнее
+в [официальной документации](https://centrifugal.dev/docs/getting-started/installation)
 
-Для отправки событий, почитайте [официальную документацию для Laravel](https://laravel.com/docs/8.x/broadcasting)
+Для отправки событий, почитайте [официальную документацию для Laravel](https://laravel.com/docs/9.x/broadcasting)
 
-### Пример аутентификации:
+### Пример аутентификации для канала:
 
 Laravel
 
 ```php
 // routes/channels.php
 
-// Приватный канал. Вы можете использовать его без префикса $
+// ВАЖНО. В Centrifugo 4 символ '$' перед приватным каналом считается устаревшим. Не используйте его. https://centrifugal.dev/docs/server/channels#private-channel-prefix- 
 Broadcast::channel('private:channel', function (){
     // Логика авторизации, пример:
     return \Auth::user()->group === 'private-channel-group';
 });
 
-// Публичный канал
 Broadcast::channel('public:channel', function (){
     return true;
 });
@@ -139,16 +132,50 @@ Broadcast::channel('public:channel', function (){
 Frontend. Смотрите документацию [centrifugal/centrifuge-js](https://github.com/centrifugal/centrifuge-js)
 
 ```js
-// устанавливаем базовый путь Laravel broadcasting 
-var config = {subscribeEndpoint: '/broadcasting/auth'};
-var centrifuge = new Centrifuge('wss://centrifuge.example.com/connection/websocket', config);
+// Пример:
+import {Centrifuge} from 'centrifuge';
 
-// CONNECTION_TOKEN необходимо получить через generateConnectionToken()
-centrifuge.setToken("CONNECTION_TOKEN");
-var subscription = centrifuge.subscribe("$private:channel", function (ctx) {
-		console.log('ctx');
-});
+// Устанавливаем базовый путь Laravel broadcasting.
+// Не забудьте добавить 'path' => [..., 'broadcasting/auth'] в файл cors.php  вашего приложения
+const subscribeTokenEndpoint = 'http://127.0.0.1/broadcasting/auth'
 
+const centrifuge = new Centrifuge('ws://localhost:8001/connection/websocket', {
+  //CONNECTION_TOKEN необходимо получить через Centrifuge::generateConnectionToken(...)
+  token: 'CONNECTION_TOKEN'
+})
+
+// Устанавливаем подписку
+const sub = centrifuge.newSubscription('test:test', {
+  getToken: function (ctx) {
+    return customGetToken(subscribeTokenEndpoint, ctx);
+  },
+})
+
+// Получение токена подписки от вашего Laravel приложения.
+// Важно! В этом примере получение токена подписки реализуется через базовый fetch() без передачи параметров для идентификации пользователя в вашем Laravel приложении. Используйте методы подходящие вашему приложению
+function getToken(endpoint, ctx) {
+  return new Promise((resolve, reject) => {
+    fetch(endpoint, {
+      method: 'POST',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify(ctx)
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Unexpected status code ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        resolve(data.token);
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
+
+sub.subscribe();
 centrifuge.connect();
 ```
 
@@ -212,11 +239,9 @@ class SendMessageEvent implements ShouldBroadcastNow
      */
     public function broadcastOn()
     {
-        // Пример отправки в приватный канал. Имя приватного канала должны быть написано без префикса $
-        return new PrivateChannel('private:chat');
-        
-        // Пример отправки в публичный канал
-        // return new Channel('public:chat');
+        return new Channel('public:chat');
+        // или return new PrivateChannel('private:chat');
+        // в Centrifuge 4 все каналы являются защищенными, а префикс '$' считается устаревшим. https://centrifugal.dev/docs/server/channels#private-channel-prefix-
     }
 }
 
@@ -239,6 +264,7 @@ class ExampleController
     public function example(Centrifugo $centrifugo)
     {
         //или $centrifugo = new Centrifugo();
+        //или centrifugo()
         
         // Отправить сообщение в канал
         $centrifugo->publish('news', ['message' => 'Hello world']);
@@ -248,7 +274,7 @@ class ExampleController
             'name' => Auth::user()->name,
         ]);
 
-        // Сгенерировать токен для подключения к приватному каналу
+        // Сгенерировать токен подписки
         $expire = now()->addDay(); //или вы можете использовать формат Unix: $expire = time() + 60 * 60 * 24; 
         $apiSign = $centrifugo->generatePrivateChannelToken((string)Auth::id(), 'channel', $expire, [
             'name' => Auth::user()->name,
@@ -266,21 +292,21 @@ class ExampleController
 
 ### Методы
 
-| Название | Описание                                                                                            |
-|------|-----------------------------------------------------------------------------------------------------|
-| publish(string $channel, array $data) | Отправка сообщения в канал                                                                          |
-| broadcast(array $channels, array $data) | Отправить сообщение в несколько каналов.                                                            |
-| publishMany(array $data)                                                            | Отправка нескольких сообщений на несколько каналов. $data - массив массивов данных [канал, данные]  |
-| presence(string $channel) | Получите информацию о присутствии в канале (все клиенты в настоящее время подписаны на этот канал). |
-| presenceStats(string $channel) | Получите краткую информацию о канале (количество клиентов).                                         |
-| history(string $channel) | Получить информацию об истории канала (список последних сообщений, отправленных в канал).           |
-| historyRemove(string $channel) | Удалить информацию из истории канала.                                                               |
-| unsubscribe(string $channel, string $user) | Отписать пользователя от канала.                                                                    |
-| disconnect(string $user_id) | Отключить пользователя по его ID.                                                                   |
-| channels() | Cписок текущих активных каналов.                                                                    |
-| info() | Статистическая информация о запущенных серверных узлах.                                             |
-| generateConnectionToken(string $userId, int $exp, array $info)  | Генерация токена для подключения                                                                    |
-| generatePrivateChannelToken(string $client, string $channel, int $exp, array $info) | Генерация приватного токена для приватного канала                                                   |
+| Название                                                                          | Описание                                                                                            |
+|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| publish(string $channel, array $data)                                             | Отправка сообщения в канал                                                                          |
+| broadcast(array $channels, array $data)                                           | Отправить сообщение в несколько каналов.                                                            |
+| publishMany(array $data)                                                          | Отправка нескольких сообщений на несколько каналов. $data - массив массивов данных [канал, данные]  |
+| presence(string $channel)                                                         | Получите информацию о присутствии в канале (все клиенты в настоящее время подписаны на этот канал). |
+| presenceStats(string $channel)                                                    | Получите краткую информацию о канале (количество клиентов).                                         |
+| history(string $channel)                                                          | Получить информацию об истории канала (список последних сообщений, отправленных в канал).           |
+| historyRemove(string $channel)                                                    | Удалить информацию из истории канала.                                                               |
+| unsubscribe(string $channel, string $user)                                        | Отписать пользователя от канала.                                                                    |
+| disconnect(string $userId)                                                       | Отключить пользователя по его ID.                                                                   |
+| channels()                                                                        | Cписок текущих активных каналов.                                                                    |
+| info()                                                                            | Статистическая информация о запущенных серверных узлах.                                             |
+| generateConnectionToken(string&#124;int $userId, int&#124;Carbon $exp = 0, array $info = [])                    | Генерация токена для подключения                                                                    |
+| generateSubscriptionToken(string&#124;int $userId, string $channel, int&#124;Carbon $exp = 0, array $info = [], array $override = []) | Генерация приватного токена для приватного канала                                                   |
 
 ## Лицензия
 

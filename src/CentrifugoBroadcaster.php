@@ -4,24 +4,30 @@ declare(strict_types=1);
 
 namespace Opekunov\Centrifugo;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Broadcasting\Broadcasters\Broadcaster;
 use Illuminate\Broadcasting\BroadcastException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Str;
+use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
+use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
+use Opekunov\Centrifugo\Exceptions\CentrifugoException;
 
 class CentrifugoBroadcaster extends Broadcaster
 {
     /**
      * The Centrifugo SDK instance.
-     *
-     * @var Contracts\CentrifugoInterface
      */
-    protected $centrifugo;
+    protected CentrifugoInterface $centrifugo;
 
     /**
      * Create a new broadcaster instance.
      *
-     * @param Centrifugo $centrifugo
+     * @param  Centrifugo  $centrifugo
      */
     public function __construct(Centrifugo $centrifugo)
     {
@@ -31,49 +37,28 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Authenticate the incoming request for a given channel.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  Request  $request
      *
-     * @return mixed
+     * @return Application|ResponseFactory|Response
      */
-    public function auth($request)
+    public function auth($request): Response|Application|ResponseFactory
     {
-        if ($request->user()) {
-            $client = $this->getClientFromRequest($request);
-            $channels = $this->getChannelsFromRequest($request);
+        $client = $request->user() ? $request->user()->id : '';
+        $channel = $request->get('channel');
+        $this->verifyUserCanAccessChannel($request, $channel);
 
-            $response = [];
-            $privateResponse = [];
-            foreach ($channels as $channel) {
-                $channelName = $this->getChannelName($channel);
-
-                try {
-                    $isAccessGranted = $this->verifyUserCanAccessChannel($request, $channelName);
-                } catch (HttpException $e) {
-                    $isAccessGranted = false;
-                }
-
-                if ($private = $this->isPrivateChannel($channel)) {
-                    $privateResponse['channels'][] = $this->makeResponseForPrivateClient($isAccessGranted, $channel, $client);
-                } else {
-                    $response[$channel] = $this->makeResponseForClient($isAccessGranted, $client);
-                }
-            }
-
-            return response($private ? $privateResponse : $response);
-        } else {
-            throw new HttpException(401);
-        }
+        return response($this->makeResponseForClient($channel, $client));
     }
 
     /**
      * Return the valid authentication response.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param mixed                    $result
+     * @param  Request  $request
+     * @param  mixed  $result
      *
      * @return mixed
      */
-    public function validAuthenticationResponse($request, $result)
+    public function validAuthenticationResponse($request, $result): mixed
     {
         return $result;
     }
@@ -81,22 +66,24 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param array  $channels
-     * @param string $event
-     * @param array  $payload
+     * @param  array  $channels
+     * @param  string  $event
+     * @param  array  $payload
      *
      * @return void
+     * @throws CentrifugoConnectionException
+     * @throws CentrifugoException
      */
-    public function broadcast(array $channels, $event, array $payload = [])
+    public function broadcast(array $channels, $event, array $payload = []): void
     {
         $payload['event'] = $event;
         $channels = array_map(function ($channel) {
-            return str_replace('private-', '$', (string) $channel);
+            return str_replace('private-', '', (string)$channel);
         }, $channels);
 
         $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
 
-        if (is_array($response) && !isset($response['error'])) {
+        if (!isset($response['error'])) {
             return;
         }
 
@@ -107,98 +94,31 @@ class CentrifugoBroadcaster extends Broadcaster
     }
 
     /**
-     * Get client from request.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return string
-     */
-    private function getClientFromRequest($request)
-    {
-        return $request->get('client', '');
-    }
-
-    /**
-     * Get channels from request.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return array
-     */
-    private function getChannelsFromRequest($request)
-    {
-        $channels = $request->get('channels', []);
-
-        return is_array($channels) ? $channels : [$channels];
-    }
-
-    /**
-     * Get channel name without $ symbol (if present).
-     *
-     * @param string $channel
-     *
-     * @return string
-     */
-    private function getChannelName(string $channel)
-    {
-        return $this->isPrivateChannel($channel) ? substr($channel, 1) : $channel;
-    }
-
-    /**
-     * Check channel name by $ symbol.
-     *
-     * @param string $channel
-     *
-     * @return bool
-     */
-    private function isPrivateChannel(string $channel): bool
-    {
-        return substr($channel, 0, 1) === '$';
-    }
-
-    /**
-     * Make response for client, based on access rights.
-     *
-     * @param bool   $access_granted
-     * @param string $client
-     *
-     * @return array
-     */
-    private function makeResponseForClient(bool $access_granted, string $client)
-    {
-        $info = [];
-
-        return $access_granted ? [
-            'sign' => $this->centrifugo->generateConnectionToken($client, 0, $info),
-            'info' => $info,
-        ] : [
-            'status' => 403,
-        ];
-    }
-
-    /**
      * Make response for client, based on access rights of private channel.
      *
-     * @param bool   $accessGranted
-     * @param string $channel
-     * @param string $client
-     * @param bool   $showInfo
+     * @param  string  $channel
+     * @param  string  $userId
      *
      * @return array
      */
-    private function makeResponseForPrivateClient(bool $accessGranted, string $channel, string $client)
+    private function makeResponseForClient(string $channel, string $userId): array
     {
-        $info = [];
-        $showInfo = $this->centrifugo->showNodeInfo();
+        if ($this->centrifugo->showNodeInfo()) {
+            try {
+                $info = $this->centrifugo->info();
+            } catch (CentrifugoException $e) {
+                $info = ['error' => $e->getMessage()];
+            }
+        }
 
-        return $accessGranted ? [
-
-            'channel' => $channel,
-            'token'   => $this->centrifugo->generatePrivateChannelToken($client, $channel, 0, $info),
-            'info'    => $showInfo ? $this->centrifugo->info() : null,
-
-        ] : [
-            'status' => 403,
+        return [
+            'channel'   => $channel,
+            'token'     => $this->centrifugo->generateSubscriptionToken(
+                $userId,
+                $channel,
+                Carbon::now()->addSeconds($this->centrifugo->getDefaultTokenExpiration())
+            ),
+            'node_info' => $info ?? null,
         ];
     }
 }
