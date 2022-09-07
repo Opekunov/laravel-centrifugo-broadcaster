@@ -37,7 +37,7 @@ based on:
 Require this package with composer:
 
 ```bash
-composer req opekunov/laravel-centrifugo-broadcaster
+composer req opekunov/laravel-centrifugo-broadcaster:1.2.6
 ```
 
 Open your `config/app.php` and add the following to the providers array:
