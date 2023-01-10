@@ -163,7 +163,7 @@ class Centrifugo implements CentrifugoInterface
                 'method' => $method,
                 'error'  => [
                     'message' => $e->getMessage(),
-                    'code'    => $e->getCode()
+                    'code'    => $e->getCode(),
                 ],
                 'body'   => $json,
             ];
