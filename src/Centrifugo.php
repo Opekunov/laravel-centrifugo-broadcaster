@@ -161,7 +161,10 @@ class Centrifugo implements CentrifugoInterface
         } catch (ClientException $e) {
             $result = [
                 'method' => $method,
-                'error'  => $e->getMessage(),
+                'error'  => [
+                    'message' => $e->getMessage(),
+                    'code'    => $e->getCode(),
+                ],
                 'body'   => $json,
             ];
         } catch (ConnectException $e) {
