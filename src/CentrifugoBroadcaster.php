@@ -46,7 +46,7 @@ class CentrifugoBroadcaster extends Broadcaster
         $channel = $request->get('channel');
         $this->verifyUserCanAccessChannel($request, $channel);
 
-        return response($this->makeResponseForClient($channel, $client));
+        return response($this->makeResponseForClient($channel, (string) $client));
     }
 
     /**
