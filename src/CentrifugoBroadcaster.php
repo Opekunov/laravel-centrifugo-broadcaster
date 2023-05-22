@@ -42,7 +42,7 @@ class CentrifugoBroadcaster extends Broadcaster
      */
     public function auth($request): Response|Application|ResponseFactory
     {
-        $client = $request->user() ? $request->user()->id : '';
+        $client = $request->user() ? (string) $request->user()->id : '';
         $channel = $request->get('channel');
         $this->verifyUserCanAccessChannel($request, $channel);
 
