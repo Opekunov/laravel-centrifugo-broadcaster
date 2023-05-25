@@ -9,7 +9,7 @@
 </p>
 
 <h1 align="center">Laravel Centrifugo 4 Broadcaster</h1>
-<h2 align="center">Centrifugo 4 broadcast driver for Laravel 8.75 - 9.x </h2>
+<h2 align="center">Centrifugo 4 broadcast driver for Laravel 8.75 - 10.x </h2>
 
 > For Centrifugo 2.8 - 3.x use [version 1.2.6](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/master)
 
@@ -22,7 +22,7 @@
 ## Requirements
 
 - PHP >= 8.0
-- Laravel 8.75 - 9.x
+- Laravel 8.75 - 10.x
 - guzzlehttp/guzzle 6 - 7
 - Centrifugo Server 4.x or newer (see [here](https://github.com/centrifugal/centrifugo))
  
