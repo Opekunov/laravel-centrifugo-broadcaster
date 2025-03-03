@@ -38,7 +38,7 @@ class Centrifugo implements CentrifugoInterface
      *
      * @throws BindingResolutionException
      */
-    public function __construct(array $config = null, HttpClient $httpClient = null)
+    public function __construct(?array $config = null, ?HttpClient $httpClient = null)
     {
         $this->httpClient = $httpClient ?? new HttpClient();
         if (!$config) {
