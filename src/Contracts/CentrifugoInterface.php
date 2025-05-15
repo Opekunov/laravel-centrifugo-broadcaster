@@ -16,7 +16,15 @@ interface CentrifugoInterface
 
     public function presenceStats(string $channel): array;
 
-    public function history(string $channel): array;
+    public function history(
+        string $channel,
+        int $limit = 0,
+        ?int $offset = null,
+        ?string $epoch = null,
+        bool $reverse = false
+    ): array;
+
+    public function rpc(string $method, array $data = []): array;
 
     public function historyRemove(string $channel): array;
 
