@@ -309,15 +309,34 @@ class Centrifugo implements CentrifugoInterface
      * Get channel history information (list of last messages sent into channel).
      *
      * @param string $channel
+     * @param int $limit = 0
+     * @param ?int $offset = null
+     * @param ?string $epoch = null
+     * @param bool $reverse = false
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
      *
      * @return array
      */
-    public function history(string $channel): array
+    public function history(
+        string $channel,
+        int $limit = 0,
+        ?int $offset = null,
+        ?string $epoch = null,
+        bool $reverse = false
+    ): array
     {
-        return $this->send('history', ['channel' => $channel]);
+        $since = $offset !== null || $epoch !== null ? ['since' => [
+            'offset' => $offset,
+            'epoch' => $epoch,
+        ]] : [];
+
+        return $this->send('history', array_merge([
+            'channel' => $channel,
+            'limit' => $limit,
+            'reverse' => $reverse,
+        ], $since));
     }
 
     /**
@@ -335,6 +354,22 @@ class Centrifugo implements CentrifugoInterface
         return $this->send('history_remove', [
             'channel' => $channel,
         ]);
+    }
+
+    /**
+     * Remote procedure call
+     *
+     * @param string $method
+     * @param array $data = []
+     *
+     * @throws CentrifugoConnectionException
+     * @throws CentrifugoException
+     *
+     * @return array
+     */
+    public function rpc(string $method, array $data = []): array
+    {
+        return $this->send('rpc', ['method' => $method, 'data' => $data]);
     }
 
     /**
