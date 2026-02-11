@@ -7,7 +7,9 @@ namespace Opekunov\Centrifugo\Http;
 class HttpResponse
 {
     private string $body;
+
     private array $headers;
+
     private int $statusCode;
 
     public function __construct(array $response)

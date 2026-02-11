@@ -10,7 +10,6 @@ use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
 use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
 use Opekunov\Centrifugo\Exceptions\CentrifugoException;
 use Opekunov\Centrifugo\Http\HttpClient;
-use Opekunov\Centrifugo\Http\HttpResponse;
 
 class Centrifugo implements CentrifugoInterface
 {
@@ -18,50 +17,40 @@ class Centrifugo implements CentrifugoInterface
 
     protected HttpClient $httpClient;
 
-    /**
-     * @var array
-     */
     protected array $config;
 
     /**
      * Create a new Centrifugo instance.
      *
-     * @param array|null      $config
-     * @param HttpClient|null $httpClient
      *
      * @throws BindingResolutionException
      */
     public function __construct(?array $config = null, ?HttpClient $httpClient = null)
     {
-        $this->httpClient = $httpClient ?? new HttpClient();
-        if (!$config) {
+        $this->httpClient = $httpClient ?? new HttpClient;
+        if (! $config) {
             $this->config = app()->make('config')->get('broadcasting.connections.centrifugo');
         } else {
-            $this->config = $this->initConfiguration($config) ??
-                app()->make('config')->get('broadcasting.connections.centrifugo');
+            $this->config = $this->initConfiguration($config);
         }
     }
 
     /**
      * Init centrifugo configuration.
-     *
-     * @param array $config
-     *
-     * @return array
      */
     protected function initConfiguration(array $config): array
     {
         $defaults = [
-            'url'               => 'http://127.0.0.1:8001',
-            'api_path'          => '/api',
-            'secret'            => null,
-            'apikey'            => null,
-            'ssl_key'           => null,
-            'verify'            => true,
+            'url' => 'http://127.0.0.1:8001',
+            'api_path' => '/api',
+            'secret' => null,
+            'apikey' => null,
+            'ssl_key' => null,
+            'verify' => true,
             'token_expire_time' => 300,
-            'show_node_info'    => false,
-            'timeout'           => 3,
-            'tries'             => 1,
+            'show_node_info' => false,
+            'timeout' => 3,
+            'tries' => 1,
         ];
 
         foreach ($config as $key => $value) {
@@ -76,37 +65,29 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Send message into channel.
      *
-     * @param string $channel
-     * @param array  $data
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function publish(string $channel, array $data): array
     {
         return $this->send('publish', [
             'channel' => $channel,
-            'data'    => $data,
+            'data' => $data,
         ]);
     }
 
     /**
      * Send message to centrifugo server.
      *
-     * @param string $method
-     * @param array  $params
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     protected function send(string $method, array $params = []): array
     {
         // Ensure empty arrays become empty objects in JSON
-        $json = json_encode($params ?: (object)[]);
+        $json = json_encode($params ?: (object) []);
 
         return $this->sendData($method, $json);
     }
@@ -114,24 +95,20 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Send json data to centrifugo server.
      *
-     * @param string $method
-     * @param string $json
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     protected function sendData(string $method, string $json): array
     {
         $headers = [
-            'Content-type'  => 'application/json',
+            'Content-type' => 'application/json',
             'X-API-Key' => $this->config['apikey'],
         ];
 
         try {
             $url = $this->prepareUrl($method);
-            
+
             $options = [
                 'headers' => $headers,
                 'body' => $json,
@@ -143,21 +120,21 @@ class Centrifugo implements CentrifugoInterface
             $parsedUrl = parse_url($url);
             if (($parsedUrl['scheme'] ?? '') === 'https') {
                 $options['verify_ssl'] = $this->config['verify'] ?? true;
-                if (!empty($this->config['ssl_key'])) {
+                if (! empty($this->config['ssl_key'])) {
                     $options['ssl_cert'] = $this->config['ssl_key'];
                 }
             }
 
             $response = $this->httpClient->post($url, $options);
-            
-            if (!$response->isSuccessful()) {
+
+            if (! $response->isSuccessful()) {
                 $result = [
                     'method' => $method,
-                    'error'  => [
-                        'message' => 'HTTP ' . $response->getStatusCode(),
-                        'code'    => $response->getStatusCode(),
+                    'error' => [
+                        'message' => 'HTTP '.$response->getStatusCode(),
+                        'code' => $response->getStatusCode(),
                     ],
-                    'body'   => $json,
+                    'body' => $json,
                 ];
             } else {
                 $result = json_decode($response->getBody(), true);
@@ -176,9 +153,7 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Prepare URL to send the http request.
      *
-     * @param string|null $method API method name for v5+ format
-     *
-     * @return string
+     * @param  string|null  $method  API method name for v5+ format
      */
     protected function prepareUrl(?string $method = null): string
     {
@@ -191,23 +166,20 @@ class Centrifugo implements CentrifugoInterface
 
         // Use new v5+ API format: /api/{method}
         if ($method !== null) {
-            $address .= '/' . $method;
+            $address .= '/'.$method;
         }
 
         return $address;
     }
 
-
     /**
      * Send multiple message into multiple channel.
      *
-     * @param array $params Example: [ ['channel' => 'channel:1', 'data' => 'Hello'],
-     *                      ['channel' => 'channel:2', 'data' => 'World']]
+     * @param  array  $params  Example: [ ['channel' => 'channel:1', 'data' => 'Hello'],
+     *                         ['channel' => 'channel:2', 'data' => 'World']]
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function publishMany(array $params): array
     {
@@ -218,13 +190,9 @@ class Centrifugo implements CentrifugoInterface
      * Send many messages per one request to centrifugo server.
      * Uses the new batch API format for v5+.
      *
-     * @param       $method
-     * @param array $params
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     protected function sendMany($method, array $params = []): array
     {
@@ -233,7 +201,7 @@ class Centrifugo implements CentrifugoInterface
         foreach ($params as $param) {
             $commands[] = [$method => $param];
         }
-        
+
         $json = json_encode(['commands' => $commands]);
 
         return $this->sendData('batch', $json);
@@ -242,13 +210,9 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Send message into multiple channel.
      *
-     * @param array $channels
-     * @param array $data
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function broadcast(array $channels, array $data): array
     {
@@ -260,12 +224,9 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Get channel presence information (all clients currently subscribed on this channel).
      *
-     * @param string $channel
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function presence(string $channel): array
     {
@@ -275,12 +236,9 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Get channel presence information in short form.
      *
-     * @param string $channel
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function presenceStats(string $channel): array
     {
@@ -290,16 +248,13 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Get channel history information (list of last messages sent into channel).
      *
-     * @param string      $channel
-     * @param int         $limit   Limit number of returned publications (0 = no limit)
-     * @param int|null    $offset  Stream position offset for pagination
-     * @param string|null $epoch   Stream position epoch for pagination
-     * @param bool        $reverse Return publications in reverse order
+     * @param  int  $limit  Limit number of returned publications (0 = no limit)
+     * @param  int|null  $offset  Stream position offset for pagination
+     * @param  string|null  $epoch  Stream position epoch for pagination
+     * @param  bool  $reverse  Return publications in reverse order
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function history(
         string $channel,
@@ -313,7 +268,7 @@ class Centrifugo implements CentrifugoInterface
         if ($offset !== null || $epoch !== null) {
             $params['since'] = [
                 'offset' => $offset,
-                'epoch'  => $epoch,
+                'epoch' => $epoch,
             ];
         }
 
@@ -323,12 +278,9 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Remove channel history information.
      *
-     * @param string $channel
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function historyRemove(string $channel): array
     {
@@ -340,31 +292,24 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Unsubscribe user from channel.
      *
-     * @param string $channel
-     * @param string $user
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function unsubscribe(string $channel, string $user): array
     {
         return $this->send('unsubscribe', [
             'channel' => $channel,
-            'user'    => $user,
+            'user' => $user,
         ]);
     }
 
     /**
      * Disconnect user by its ID.
      *
-     * @param string $userId
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function disconnect(string $userId): array
     {
@@ -374,27 +319,23 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Subscribe user to a channel (server-side).
      *
-     * @param string $channel
-     * @param string $user
-     * @param array  $info    Custom data to attach to subscription
-     * @param array  $data    Custom subscription data sent to client
+     * @param  array  $info  Custom data to attach to subscription
+     * @param  array  $data  Custom subscription data sent to client
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function subscribe(string $channel, string $user, array $info = [], array $data = []): array
     {
         $params = [
             'channel' => $channel,
-            'user'    => $user,
+            'user' => $user,
         ];
 
-        if (!empty($info)) {
+        if (! empty($info)) {
             $params['info'] = $info;
         }
-        if (!empty($data)) {
+        if (! empty($data)) {
             $params['data'] = $data;
         }
 
@@ -404,13 +345,11 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Remote procedure call.
      *
-     * @param string $method RPC method name
-     * @param array  $data   RPC data
+     * @param  string  $method  RPC method name
+     * @param  array  $data  RPC data
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function rpc(string $method, array $data = []): array
     {
@@ -420,12 +359,10 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Get channels information (list of currently active channels).
      *
-     * @param string $pattern Pattern to filter channels
+     * @param  string  $pattern  Pattern to filter channels
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function channels(string $pattern = ''): array
     {
@@ -437,8 +374,6 @@ class Centrifugo implements CentrifugoInterface
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return array
      */
     public function info(): array
     {
@@ -448,14 +383,12 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Generate user channel SUBSCRIPTION token.
      *
-     * @param string|int $userId   Required. This is a standard JWT claim which must contain an ID of the current application user (as string).
-     * @param string     $channel  Required. Channel that client tries to subscribe to with this token (string)
-     * @param int|Carbon $exp      Optional. Token expiration time. Carbon time or UNIX
-     * @param array      $info     Additional information for connection inside this channel.
-     * @param array      $override This is an object which allows overriding channel options.
-     *                             https://centrifugal.dev/docs/server/channel_token_auth#override
-     *
-     * @return string
+     * @param  string|int  $userId  Required. This is a standard JWT claim which must contain an ID of the current application user (as string).
+     * @param  string  $channel  Required. Channel that client tries to subscribe to with this token (string)
+     * @param  int|Carbon  $exp  Optional. Token expiration time. Carbon time or UNIX
+     * @param  array  $info  Additional information for connection inside this channel.
+     * @param  array  $override  This is an object which allows overriding channel options.
+     *                           https://centrifugal.dev/docs/server/channel_token_auth#override
      *
      * @see https://centrifugal.dev/docs/server/channel_token_auth
      */
@@ -468,16 +401,20 @@ class Centrifugo implements CentrifugoInterface
     ): string {
         $payload = [
             'sub' => (string) $userId,
-            'exp' => gettype($exp) !== 'integer' ? $exp->unix() : $exp,
         ];
+
+        $expValue = $exp instanceof Carbon ? $exp->unix() : $exp;
+        if ($expValue > 0) {
+            $payload['exp'] = $expValue;
+        }
 
         if ($channel) {
             $payload['channel'] = $channel;
         }
-        if (!empty($info)) {
+        if (! empty($info)) {
             $payload['info'] = $info;
         }
-        if (!empty($override)) {
+        if (! empty($override)) {
             $payload['override'] = $override;
         }
 
@@ -487,25 +424,26 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Generate user CONNECTION token.
      *
-     * @param int|string $userId    Required. This is a standard JWT claim which must contain an ID of the current application user (as string)
-     * @param int|Carbon $exp       Optional. Token expiration time. Carbon time or UNIX
-     * @param array      $info
-     * @param array      $channels  Optional. The channels to automatically subscribe to when connecting
-     *
-     * @return string
+     * @param  int|string  $userId  Required. This is a standard JWT claim which must contain an ID of the current application user (as string)
+     * @param  int|Carbon  $exp  Optional. Token expiration time. Carbon time or UNIX
+     * @param  array  $channels  Optional. The channels to automatically subscribe to when connecting
      */
     public function generateConnectionToken(int|string $userId, int|Carbon $exp = 0, array $info = [], array $channels = []): string
     {
         $payload = [
             'sub' => (string) $userId,
-            'exp' => gettype($exp) !== 'integer' ? $exp->unix() : $exp,
         ];
 
-        if (!empty($info)) {
+        $expValue = $exp instanceof Carbon ? $exp->unix() : $exp;
+        if ($expValue > 0) {
+            $payload['exp'] = $expValue;
+        }
+
+        if (! empty($info)) {
             $payload['info'] = $info;
         }
 
-        if (!empty($channels)) {
+        if (! empty($channels)) {
             $payload['channels'] = $channels;
         }
 
@@ -514,10 +452,6 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Create JWT Token from payload.
-     *
-     * @param array $payload
-     *
-     * @return string
      */
     private function createJWTToken(array $payload): string
     {
@@ -536,10 +470,6 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Safely encode string in base64.
-     *
-     * @param string $input
-     *
-     * @return string
      */
     private function urlSafeB64Encode(string $input): string
     {
@@ -548,11 +478,6 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Sign message with secret key.
-     *
-     * @param string $msg
-     * @param string $key
-     *
-     * @return string
      */
     private function sign(string $msg, string $key): string
     {
@@ -561,8 +486,6 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Get secret key.
-     *
-     * @return string
      */
     protected function getSecret(): string
     {
@@ -571,16 +494,14 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Can show Node info when return auth token.
-     *
-     * @return bool
      */
     public function showNodeInfo(): bool
     {
         return (bool) $this->config['show_node_info'];
     }
 
-    public function getDefaultTokenExpiration()
+    public function getDefaultTokenExpiration(): int
     {
-        return $this->config['token_expire_time'];
+        return (int) $this->config['token_expire_time'];
     }
 }

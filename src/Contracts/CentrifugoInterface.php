@@ -57,5 +57,5 @@ interface CentrifugoInterface
 
     public function showNodeInfo(): bool;
 
-    public function getDefaultTokenExpiration();
+    public function getDefaultTokenExpiration(): int;
 }

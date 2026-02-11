@@ -1,0 +1,123 @@
+name: Tests
+
+on:
+  push:
+    branches: [3.x]
+  pull_request:
+    branches: [3.x]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.0'
+            laravel: '8.*'
+            testbench: '6.*'
+            phpunit: '9.*'
+          - php: '8.1'
+            laravel: '8.*'
+            testbench: '6.*'
+            phpunit: '9.*'
+          - php: '8.0'
+            laravel: '9.*'
+            testbench: '7.*'
+            phpunit: '9.*'
+          - php: '8.1'
+            laravel: '9.*'
+            testbench: '7.*'
+            phpunit: '9.*'
+          - php: '8.2'
+            laravel: '9.*'
+            testbench: '7.*'
+            phpunit: '9.*'
+          - php: '8.1'
+            laravel: '10.*'
+            testbench: '8.*'
+            phpunit: '10.*'
+          - php: '8.2'
+            laravel: '10.*'
+            testbench: '8.*'
+            phpunit: '10.*'
+          - php: '8.3'
+            laravel: '10.*'
+            testbench: '8.*'
+            phpunit: '10.*'
+          - php: '8.2'
+            laravel: '11.*'
+            testbench: '9.*'
+            phpunit: '10.*'
+          - php: '8.3'
+            laravel: '11.*'
+            testbench: '9.*'
+            phpunit: '11.*'
+          - php: '8.4'
+            laravel: '11.*'
+            testbench: '9.*'
+            phpunit: '11.*'
+          - php: '8.2'
+            laravel: '12.*'
+            testbench: '10.*'
+            phpunit: '11.*'
+          - php: '8.3'
+            laravel: '12.*'
+            testbench: '10.*'
+            phpunit: '11.*'
+          - php: '8.4'
+            laravel: '12.*'
+            testbench: '10.*'
+            phpunit: '11.*'
+
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer remove larastan/larastan --dev --no-interaction --no-update
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "phpunit/phpunit:${{ matrix.phpunit }}" --no-interaction --no-update
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests
+        run: vendor/bin/phpunit tests/Unit/
+
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: json
+          coverage: xdebug
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:12.*" "orchestra/testbench:10.*" "phpunit/phpunit:11.*" --no-interaction --no-update
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests with coverage
+        run: vendor/bin/phpunit tests/Unit/ --coverage-clover coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

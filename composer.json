@@ -32,9 +32,11 @@
         "ext-json": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5|^10.5|^11.0",
+        "larastan/larastan": "^2.0|^3.0",
+        "laravel/pint": "^1.0",
         "mockery/mockery": "^1.5",
-        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0"
+        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^9.5|^10.5|^11.0"
     },
     "autoload": {
         "psr-4": {
@@ -68,7 +70,10 @@
         "test:docker:v6": "cd tests/Docker && docker compose up -d centrifugo-v6 && cd ../.. && php tests/Docker/wait-for-server.php http://localhost:8002 && CENTRIFUGO_URL=http://localhost:8002 phpunit tests/Integration/; rc=$?; cd tests/Docker && docker compose down; exit $rc",
         "test:all": ["@test:unit", "@test:integration"],
         "test:security": "phpunit tests/Unit/SecurityTest.php",
-        "test:http": "phpunit tests/Unit/HttpClientTest.php"
+        "test:http": "phpunit tests/Unit/HttpClientTest.php",
+        "lint": "pint --test",
+        "lint:fix": "pint",
+        "analyse": "phpstan analyse --memory-limit=512M"
     },
     "config": {
         "sort-packages": true

@@ -15,7 +15,7 @@ class SecurityTest extends TestCase
         ], $overrides));
     }
 
-    public function testSecretsNotExposedInExceptions(): void
+    public function test_secrets_not_exposed_in_exceptions(): void
     {
         $centrifugo = new Centrifugo([
             'secret' => 'super-secret-key',
@@ -36,7 +36,7 @@ class SecurityTest extends TestCase
         $this->assertTrue($exceptionThrown, 'Expected exception to be thrown for invalid host');
     }
 
-    public function testJwtTokensAreUrlSafeBase64(): void
+    public function test_jwt_tokens_are_url_safe_base64(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -47,7 +47,7 @@ class SecurityTest extends TestCase
         $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/', $subToken);
     }
 
-    public function testJwtTokenContainsExpiration(): void
+    public function test_jwt_token_contains_expiration(): void
     {
         $centrifugo = $this->createCentrifugo();
         $expTime = time() + 600;
@@ -59,7 +59,7 @@ class SecurityTest extends TestCase
         $this->assertEquals('user123', $payload['sub']);
     }
 
-    public function testMaliciousInputHandledSafely(): void
+    public function test_malicious_input_handled_safely(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -76,7 +76,7 @@ class SecurityTest extends TestCase
         $this->assertEquals($maliciousUserId, $payload['sub']);
     }
 
-    public function testSecureDefaults(): void
+    public function test_secure_defaults(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -85,7 +85,7 @@ class SecurityTest extends TestCase
         $this->assertLessThan(3600, $centrifugo->getDefaultTokenExpiration());
     }
 
-    public function testSslUrlPreservation(): void
+    public function test_ssl_url_preservation(): void
     {
         $centrifugo = $this->createCentrifugo([
             'url' => 'https://example.com',
@@ -101,7 +101,7 @@ class SecurityTest extends TestCase
         $this->assertStringStartsWith('https://', $url);
     }
 
-    public function testVariousChannelNameFormats(): void
+    public function test_various_channel_name_formats(): void
     {
         $centrifugo = $this->createCentrifugo();
 

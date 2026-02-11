@@ -25,8 +25,6 @@ class CentrifugoBroadcaster extends Broadcaster
 
     /**
      * Create a new broadcaster instance.
-     *
-     * @param Centrifugo $centrifugo
      */
     public function __construct(Centrifugo $centrifugo)
     {
@@ -36,9 +34,7 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Authenticate the incoming request for a given channel.
      *
-     * @param Request $request
-     *
-     * @return Application|ResponseFactory|Response
+     * @param  Request  $request
      */
     public function auth($request): Response|Application|ResponseFactory
     {
@@ -52,10 +48,8 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Return the valid authentication response.
      *
-     * @param Request $request
-     * @param mixed   $result
-     *
-     * @return mixed
+     * @param  Request  $request
+     * @param  mixed  $result
      */
     public function validAuthenticationResponse($request, $result): mixed
     {
@@ -65,14 +59,10 @@ class CentrifugoBroadcaster extends Broadcaster
     /**
      * Broadcast the given event.
      *
-     * @param array  $channels
-     * @param string $event
-     * @param array  $payload
+     * @param  string  $event
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
-     *
-     * @return void
      */
     public function broadcast(array $channels, $event, array $payload = []): void
     {
@@ -87,7 +77,7 @@ class CentrifugoBroadcaster extends Broadcaster
             throw new BroadcastException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if (!isset($response['error'])) {
+        if (! isset($response['error'])) {
             return;
         }
 
@@ -99,11 +89,6 @@ class CentrifugoBroadcaster extends Broadcaster
 
     /**
      * Make response for client, based on access rights of private channel.
-     *
-     * @param string $channel
-     * @param string $userId
-     *
-     * @return array
      */
     private function makeResponseForClient(string $channel, string $userId): array
     {
@@ -116,8 +101,8 @@ class CentrifugoBroadcaster extends Broadcaster
         }
 
         return [
-            'channel'   => $channel,
-            'token'     => $this->centrifugo->generateSubscriptionToken(
+            'channel' => $channel,
+            'token' => $this->centrifugo->generateSubscriptionToken(
                 $userId,
                 $channel,
                 Carbon::now()->addSeconds($this->centrifugo->getDefaultTokenExpiration())

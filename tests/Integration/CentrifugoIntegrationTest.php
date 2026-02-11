@@ -3,15 +3,15 @@
 namespace Opekunov\Centrifugo\Tests\Integration;
 
 use Opekunov\Centrifugo\Centrifugo;
-use Opekunov\Centrifugo\Http\HttpClient;
 use PHPUnit\Framework\TestCase;
 
 class CentrifugoIntegrationTest extends TestCase
 {
     private Centrifugo $centrifugo;
+
     private string $centrifugoUrl;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -28,9 +28,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->centrifugo = new Centrifugo($config);
     }
 
-    public function testCentrifugoConnectionAndInfo()
+    public function test_centrifugo_connection_and_info()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -40,9 +40,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('result', $result);
     }
 
-    public function testPublishToChannel()
+    public function test_publish_to_channel()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -56,9 +56,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testBroadcastToMultipleChannels()
+    public function test_broadcast_to_multiple_channels()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -72,9 +72,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testPublishMany()
+    public function test_publish_many()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -87,9 +87,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testChannelsList()
+    public function test_channels_list()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -103,9 +103,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('channels', $result['result']);
     }
 
-    public function testPresenceForEmptyChannel()
+    public function test_presence_for_empty_channel()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -120,9 +120,9 @@ class CentrifugoIntegrationTest extends TestCase
         }
     }
 
-    public function testPresenceStats()
+    public function test_presence_stats()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -137,7 +137,7 @@ class CentrifugoIntegrationTest extends TestCase
         }
     }
 
-    public function testTokenGeneration()
+    public function test_token_generation()
     {
         // Token generation doesn't require server connection
         $connectionToken = $this->centrifugo->generateConnectionToken('test-user-123', time() + 300);
@@ -157,7 +157,7 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertCount(3, $parts);
     }
 
-    public function testApiUrlFormat()
+    public function test_api_url_format()
     {
         // Test that URLs are prepared correctly for v5+ API format
         $reflection = new \ReflectionClass($this->centrifugo);
@@ -174,9 +174,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertEquals("{$baseUrl}/api/batch", $method->invoke($this->centrifugo, 'batch'));
     }
 
-    public function testUnsubscribeFromChannel()
+    public function test_unsubscribe_from_channel()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -187,9 +187,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testDisconnectUser()
+    public function test_disconnect_user()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -200,9 +200,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testHistoryOperations()
+    public function test_history_operations()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -223,9 +223,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('result', $removeResult);
     }
 
-    public function testChannelWithPattern()
+    public function test_channel_with_pattern()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -241,16 +241,16 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('result', $result);
     }
 
-    public function testComplexJwtTokens()
+    public function test_complex_jwt_tokens()
     {
         // Test connection token with channels and info
-        $userId = 'user-' . time();
+        $userId = 'user-'.time();
         $info = [
             'username' => 'testuser',
             'email' => 'test@example.com',
             'role' => 'admin',
         ];
-        $channels = ['personal:' . $userId, 'notifications'];
+        $channels = ['personal:'.$userId, 'notifications'];
 
         $connectionToken = $this->centrifugo->generateConnectionToken($userId, time() + 600, $info, $channels);
 
@@ -290,9 +290,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertEquals($override, $payload['override']);
     }
 
-    public function testSubscribeUser()
+    public function test_subscribe_user()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -303,9 +303,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testHistoryWithParameters()
+    public function test_history_with_parameters()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -326,9 +326,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('result', $historyReverse);
     }
 
-    public function testErrorHandling()
+    public function test_error_handling()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -341,9 +341,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertIsArray($result);
     }
 
-    public function testV5ApiHeadersFormat()
+    public function test_v5_api_headers_format()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -368,9 +368,9 @@ class CentrifugoIntegrationTest extends TestCase
         );
     }
 
-    public function testRpc()
+    public function test_rpc()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -384,9 +384,9 @@ class CentrifugoIntegrationTest extends TestCase
         );
     }
 
-    public function testPublishWithUnicodeData()
+    public function test_publish_with_unicode_data()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -401,9 +401,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testPublishEmptyData()
+    public function test_publish_empty_data()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -413,13 +413,13 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('result', $result);
     }
 
-    public function testHistoryPagination()
+    public function test_history_pagination()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
-        $channel = 'test:history-pagination-' . time();
+        $channel = 'test:history-pagination-'.time();
 
         // Publish several messages
         for ($i = 1; $i <= 5; $i++) {
@@ -448,9 +448,9 @@ class CentrifugoIntegrationTest extends TestCase
         }
     }
 
-    public function testBroadcastToSingleChannel()
+    public function test_broadcast_to_single_channel()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -463,9 +463,9 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testChannelsEmpty()
+    public function test_channels_empty()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -477,23 +477,23 @@ class CentrifugoIntegrationTest extends TestCase
         $this->assertArrayHasKey('channels', $result['result']);
     }
 
-    public function testDisconnectNonExistentUser()
+    public function test_disconnect_non_existent_user()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
         // Disconnecting a non-existent user should not cause an error
-        $result = $this->centrifugo->disconnect('non-existent-user-' . time());
+        $result = $this->centrifugo->disconnect('non-existent-user-'.time());
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('result', $result);
         $this->assertArrayNotHasKey('error', $result);
     }
 
-    public function testSubscribeWithInfo()
+    public function test_subscribe_with_info()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -511,6 +511,7 @@ class CentrifugoIntegrationTest extends TestCase
     {
         try {
             $result = $this->centrifugo->info();
+
             return isset($result['result']);
         } catch (\Throwable $e) {
             return false;

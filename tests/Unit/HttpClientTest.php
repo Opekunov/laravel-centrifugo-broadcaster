@@ -11,13 +11,13 @@ class HttpClientTest extends TestCase
 {
     // ---- Construction ----
 
-    public function testConstruction(): void
+    public function test_construction(): void
     {
-        $client = new HttpClient();
+        $client = new HttpClient;
         $this->assertInstanceOf(HttpClient::class, $client);
     }
 
-    public function testConstructionWithOptions(): void
+    public function test_construction_with_options(): void
     {
         $client = new HttpClient(['timeout' => 60, 'verify_ssl' => false]);
         $this->assertInstanceOf(HttpClient::class, $client);
@@ -25,7 +25,7 @@ class HttpClientTest extends TestCase
 
     // ---- HttpResponse ----
 
-    public function testResponseSuccess(): void
+    public function test_response_success(): void
     {
         $response = new HttpResponse([
             'body' => '{"result": []}',
@@ -39,7 +39,7 @@ class HttpClientTest extends TestCase
         $this->assertFalse($response->isServerError());
     }
 
-    public function testResponseClientError(): void
+    public function test_response_client_error(): void
     {
         $response = new HttpResponse([
             'body' => '{"error": "Not Found"}',
@@ -52,7 +52,7 @@ class HttpClientTest extends TestCase
         $this->assertFalse($response->isServerError());
     }
 
-    public function testResponseServerError(): void
+    public function test_response_server_error(): void
     {
         $response = new HttpResponse([
             'body' => '{"error": "Internal Server Error"}',
@@ -65,7 +65,7 @@ class HttpClientTest extends TestCase
         $this->assertTrue($response->isServerError());
     }
 
-    public function testResponseEmptyHeaders(): void
+    public function test_response_empty_headers(): void
     {
         $response = new HttpResponse([
             'body' => '{"result": []}',
@@ -76,7 +76,7 @@ class HttpClientTest extends TestCase
         $this->assertFalse($response->isSuccessful());
     }
 
-    public function testResponseUnparsableStatusLine(): void
+    public function test_response_unparsable_status_line(): void
     {
         $response = new HttpResponse([
             'body' => '{}',
@@ -87,7 +87,7 @@ class HttpClientTest extends TestCase
         $this->assertFalse($response->isSuccessful());
     }
 
-    public function testResponseGetHeaders(): void
+    public function test_response_get_headers(): void
     {
         $headers = ['HTTP/1.1 200 OK', 'Content-Type: application/json'];
         $response = new HttpResponse([
@@ -100,7 +100,7 @@ class HttpClientTest extends TestCase
 
     // ---- Error handling ----
 
-    public function testInvalidUrlThrowsConnectionException(): void
+    public function test_invalid_url_throws_connection_exception(): void
     {
         $client = new HttpClient(['timeout' => 1]);
 

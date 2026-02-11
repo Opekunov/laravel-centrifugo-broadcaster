@@ -29,7 +29,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'driver' => 'centrifugo',
             'secret' => 'bbe7d157-a253-4094-9759-06a8236543f9',
             'apikey' => 'd7627bb6-2292-4911-82e1-615c0ed3eebb',
-            'url'    => $_ENV['CENTRIFUGO_URL'] ?? 'http://localhost:8001',
+            'url' => $_ENV['CENTRIFUGO_URL'] ?? 'http://localhost:8001',
             'token_expire_time' => 300,
             'show_node_info' => false,
         ]);

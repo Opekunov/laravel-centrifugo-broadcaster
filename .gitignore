@@ -1,8 +1,20 @@
 .idea
 .phpunit.cache/
 .phpunit.result.cache
+.phpstan.cache/
 /composer.lock
 /vendor/
 /centrifugo/
+/coverage/
 /.claude/
 /CLAUDE.md
+
+# Example app
+example/vendor/
+example/node_modules/
+example/.env
+example/public/build/
+example/public/hot
+example/storage/*.key
+example/composer.lock
+/example/

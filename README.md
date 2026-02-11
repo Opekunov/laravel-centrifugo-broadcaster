@@ -2,8 +2,9 @@
 
 <p align="center">
 <a href="https://github.com/Opekunov/laravel-centrifugo-broadcaster/releases"><img src="https://img.shields.io/github/release/Opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Latest Version"></a>
-<a href="https://github.styleci.io/repos/372425291?branch=master"><img src="https://github.styleci.io/repos/372425291/shield?branch=master" alt="StyleCI"></a>
-<a href="https://scrutinizer-ci.com/g/Opekunov/laravel-centrifugo-broadcaster/?branch=master"><img src="https://scrutinizer-ci.com/g/Opekunov/laravel-centrifugo-broadcaster/badges/quality-score.png?b=master" alt="StyleCI"></a>
+<a href="https://github.com/Opekunov/laravel-centrifugo-broadcaster/actions/workflows/tests.yml"><img src="https://github.com/Opekunov/laravel-centrifugo-broadcaster/actions/workflows/tests.yml/badge.svg?branch=3.x" alt="Tests"></a>
+<a href="https://github.com/Opekunov/laravel-centrifugo-broadcaster/actions/workflows/code-quality.yml"><img src="https://github.com/Opekunov/laravel-centrifugo-broadcaster/actions/workflows/code-quality.yml/badge.svg?branch=3.x" alt="Code Quality"></a>
+<a href="https://codecov.io/gh/Opekunov/laravel-centrifugo-broadcaster"><img src="https://codecov.io/gh/Opekunov/laravel-centrifugo-broadcaster/branch/3.x/graph/badge.svg" alt="Coverage"></a>
 <a href="https://packagist.org/packages/opekunov/laravel-centrifugo-broadcaster"><img src="https://img.shields.io/packagist/dt/opekunov/laravel-centrifugo-broadcaster.svg?style=flat-square" alt="Total Downloads"></a>
 <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Software License"></a>
 </p>

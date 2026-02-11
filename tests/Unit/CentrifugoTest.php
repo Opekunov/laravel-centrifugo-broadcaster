@@ -22,30 +22,30 @@ class CentrifugoTest extends TestCase
 
     // ---- Construction ----
 
-    public function testConstruction(): void
+    public function test_construction(): void
     {
         $centrifugo = $this->createCentrifugo();
         $this->assertInstanceOf(Centrifugo::class, $centrifugo);
     }
 
-    public function testConstructionWithHttpClient(): void
+    public function test_construction_with_http_client(): void
     {
         $centrifugo = new Centrifugo([
             'secret' => 'test-secret',
             'apikey' => 'test-key',
-        ], new HttpClient());
+        ], new HttpClient);
 
         $this->assertInstanceOf(Centrifugo::class, $centrifugo);
     }
 
-    public function testResolvesFromContainer(): void
+    public function test_resolves_from_container(): void
     {
         $this->assertInstanceOf(Centrifugo::class, $this->centrifuge);
     }
 
     // ---- Configuration ----
 
-    public function testConfigurationDefaults(): void
+    public function test_configuration_defaults(): void
     {
         $centrifugo = new Centrifugo([
             'secret' => 'test-secret',
@@ -56,7 +56,7 @@ class CentrifugoTest extends TestCase
         $this->assertFalse($centrifugo->showNodeInfo());
     }
 
-    public function testSslConfiguration(): void
+    public function test_ssl_configuration(): void
     {
         $centrifugo = $this->createCentrifugo([
             'url' => 'https://localhost:8001',
@@ -69,7 +69,7 @@ class CentrifugoTest extends TestCase
 
     // ---- API URL format (v5+) ----
 
-    public function testApiUrlPreparation(): void
+    public function test_api_url_preparation(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -84,11 +84,11 @@ class CentrifugoTest extends TestCase
         ];
 
         foreach ($endpoints as $endpoint) {
-            $this->assertStringEndsWith('/api/' . $endpoint, $method->invoke($centrifugo, $endpoint));
+            $this->assertStringEndsWith('/api/'.$endpoint, $method->invoke($centrifugo, $endpoint));
         }
     }
 
-    public function testApiUrlPreparationWithoutMethod(): void
+    public function test_api_url_preparation_without_method(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -99,7 +99,7 @@ class CentrifugoTest extends TestCase
         $this->assertStringEndsWith('/api', $method->invoke($centrifugo, null));
     }
 
-    public function testApiUrlWithHttps(): void
+    public function test_api_url_with_https(): void
     {
         $centrifugo = $this->createCentrifugo(['url' => 'https://example.com']);
 
@@ -113,7 +113,7 @@ class CentrifugoTest extends TestCase
 
     // ---- JWT Token generation ----
 
-    public function testGenerateConnectionToken(): void
+    public function test_generate_connection_token(): void
     {
         $timestamp = 1491650279;
         $clientId = '0c951315-be0e-4516-b99e-05e60b0cc317';
@@ -126,7 +126,7 @@ class CentrifugoTest extends TestCase
         );
     }
 
-    public function testGenerateSubscriptionToken(): void
+    public function test_generate_subscription_token(): void
     {
         $timestamp = 1491650279;
         $clientId = '0c951315-be0e-4516-b99e-05e60b0cc317';
@@ -140,7 +140,7 @@ class CentrifugoTest extends TestCase
         );
     }
 
-    public function testJwtTokenStructure(): void
+    public function test_jwt_token_structure(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -155,7 +155,7 @@ class CentrifugoTest extends TestCase
         $this->assertCount(3, explode('.', $subscriptionToken));
     }
 
-    public function testConnectionTokenWithChannels(): void
+    public function test_connection_token_with_channels(): void
     {
         $channels = ['channel1', 'channel2'];
         $token = $this->centrifuge->generateConnectionToken('123', 1491650279, [], $channels);
@@ -165,7 +165,7 @@ class CentrifugoTest extends TestCase
         $this->assertEquals($channels, $payload['channels']);
     }
 
-    public function testConnectionTokenWithInfo(): void
+    public function test_connection_token_with_info(): void
     {
         $centrifugo = $this->createCentrifugo();
         $info = ['name' => 'Test User', 'role' => 'admin'];
@@ -177,7 +177,7 @@ class CentrifugoTest extends TestCase
         $this->assertEquals($info, $payload['info']);
     }
 
-    public function testConnectionTokenWithoutInfoOmitsKey(): void
+    public function test_connection_token_without_info_omits_key(): void
     {
         $centrifugo = $this->createCentrifugo();
         $token = $centrifugo->generateConnectionToken('123', 1491650279);
@@ -187,7 +187,7 @@ class CentrifugoTest extends TestCase
         $this->assertArrayNotHasKey('channels', $payload);
     }
 
-    public function testSubscriptionTokenWithOverride(): void
+    public function test_subscription_token_with_override(): void
     {
         $centrifugo = $this->createCentrifugo();
         $override = ['presence' => true, 'history_size' => 100];
@@ -199,7 +199,7 @@ class CentrifugoTest extends TestCase
         $this->assertEquals($override, $payload['override']);
     }
 
-    public function testSubscriptionTokenContainsChannel(): void
+    public function test_subscription_token_contains_channel(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -210,7 +210,7 @@ class CentrifugoTest extends TestCase
         $this->assertEquals('chat:room', $payload['channel']);
     }
 
-    public function testTokenContainsExpAndSub(): void
+    public function test_token_contains_exp_and_sub(): void
     {
         $centrifugo = $this->createCentrifugo();
         $expTime = time() + 600;
@@ -222,7 +222,7 @@ class CentrifugoTest extends TestCase
         $this->assertEquals('user123', $payload['sub']);
     }
 
-    public function testTokenWithIntegerUserId(): void
+    public function test_token_with_integer_user_id(): void
     {
         $centrifugo = $this->createCentrifugo();
 
@@ -232,9 +232,101 @@ class CentrifugoTest extends TestCase
         $this->assertEquals('42', $payload['sub']);
     }
 
+    // ---- Token exp=0 omits exp claim ----
+
+    public function test_connection_token_without_exp_omits_claim(): void
+    {
+        $centrifugo = $this->createCentrifugo();
+
+        $token = $centrifugo->generateConnectionToken('user123');
+
+        $payload = $this->decodeJwtPayload($token);
+        $this->assertEquals('user123', $payload['sub']);
+        $this->assertArrayNotHasKey('exp', $payload, 'exp=0 should not include exp in JWT payload');
+    }
+
+    public function test_connection_token_with_explicit_zero_exp_omits_claim(): void
+    {
+        $centrifugo = $this->createCentrifugo();
+
+        $token = $centrifugo->generateConnectionToken('user123', 0);
+
+        $payload = $this->decodeJwtPayload($token);
+        $this->assertArrayNotHasKey('exp', $payload, 'Explicit exp=0 should not include exp in JWT payload');
+    }
+
+    public function test_connection_token_with_positive_exp_includes_claim(): void
+    {
+        $centrifugo = $this->createCentrifugo();
+        $expTime = time() + 3600;
+
+        $token = $centrifugo->generateConnectionToken('user123', $expTime);
+
+        $payload = $this->decodeJwtPayload($token);
+        $this->assertArrayHasKey('exp', $payload);
+        $this->assertEquals($expTime, $payload['exp']);
+    }
+
+    public function test_subscription_token_without_exp_omits_claim(): void
+    {
+        $centrifugo = $this->createCentrifugo();
+
+        $token = $centrifugo->generateSubscriptionToken('user123', 'chat:room');
+
+        $payload = $this->decodeJwtPayload($token);
+        $this->assertEquals('user123', $payload['sub']);
+        $this->assertEquals('chat:room', $payload['channel']);
+        $this->assertArrayNotHasKey('exp', $payload, 'exp=0 should not include exp in JWT payload');
+    }
+
+    public function test_subscription_token_with_positive_exp_includes_claim(): void
+    {
+        $centrifugo = $this->createCentrifugo();
+        $expTime = time() + 3600;
+
+        $token = $centrifugo->generateSubscriptionToken('user123', 'chat:room', $expTime);
+
+        $payload = $this->decodeJwtPayload($token);
+        $this->assertArrayHasKey('exp', $payload);
+        $this->assertEquals($expTime, $payload['exp']);
+    }
+
+    public function test_connection_token_with_carbon_exp_includes_claim(): void
+    {
+        $centrifugo = $this->createCentrifugo();
+        $carbon = \Carbon\Carbon::now()->addHour();
+
+        $token = $centrifugo->generateConnectionToken('user123', $carbon);
+
+        $payload = $this->decodeJwtPayload($token);
+        $this->assertArrayHasKey('exp', $payload);
+        $this->assertEquals($carbon->unix(), $payload['exp']);
+    }
+
+    // ---- getDefaultTokenExpiration returns int ----
+
+    public function test_get_default_token_expiration_returns_int(): void
+    {
+        $centrifugo = $this->createCentrifugo(['token_expire_time' => 300]);
+        $result = $centrifugo->getDefaultTokenExpiration();
+
+        $this->assertIsInt($result);
+        $this->assertEquals(300, $result);
+    }
+
+    public function test_get_default_token_expiration_casts_string_to_int(): void
+    {
+        // Simulates env() returning a string value
+        $centrifugo = $this->createCentrifugo(['token_expire_time' => '3600']);
+        $result = $centrifugo->getDefaultTokenExpiration();
+
+        $this->assertIsInt($result);
+        $this->assertEquals(3600, $result);
+    }
+
     // ---- Batch command format (v5+) ----
 
-    public function testBatchCommandFormat(): void
+    public function test_batch_command_format(): void
     {
         $params = [
             ['channel' => 'test1', 'data' => ['msg' => 'hello']],
@@ -259,7 +351,7 @@ class CentrifugoTest extends TestCase
 
     // ---- Timeout & retries ----
 
-    public function testTimeoutFunction(): void
+    public function test_timeout_function(): void
     {
         $timeout = 3;
         $delta = 0.5;
@@ -286,7 +378,7 @@ class CentrifugoTest extends TestCase
         }
     }
 
-    public function testTriesFunction(): void
+    public function test_tries_function(): void
     {
         $timeout = 1;
         $tries = 3;

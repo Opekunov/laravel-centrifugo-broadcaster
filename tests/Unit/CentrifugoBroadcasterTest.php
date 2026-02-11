@@ -19,7 +19,7 @@ class CentrifugoBroadcasterTest extends TestCase
 
     // ---- broadcast() ----
 
-    public function testBroadcastRemovesPrivatePrefix(): void
+    public function test_broadcast_removes_private_prefix(): void
     {
         $mockCentrifugo = Mockery::mock(Centrifugo::class);
         $mockCentrifugo->shouldReceive('broadcast')
@@ -33,7 +33,7 @@ class CentrifugoBroadcasterTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testBroadcastThrowsOnError(): void
+    public function test_broadcast_throws_on_error(): void
     {
         $mockCentrifugo = Mockery::mock(Centrifugo::class);
         $mockCentrifugo->shouldReceive('broadcast')
@@ -54,7 +54,7 @@ class CentrifugoBroadcasterTest extends TestCase
         $broadcaster->broadcast(['test-channel'], 'test-event', ['message' => 'Hello']);
     }
 
-    public function testBroadcastSuccessNoException(): void
+    public function test_broadcast_success_no_exception(): void
     {
         $mockCentrifugo = Mockery::mock(Centrifugo::class);
         $mockCentrifugo->shouldReceive('broadcast')
@@ -69,7 +69,7 @@ class CentrifugoBroadcasterTest extends TestCase
 
     // ---- auth() ----
 
-    public function testAuth(): void
+    public function test_auth(): void
     {
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('user')->andReturn((object) ['id' => '123']);
@@ -95,7 +95,7 @@ class CentrifugoBroadcasterTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
-    public function testAuthWithNodeInfo(): void
+    public function test_auth_with_node_info(): void
     {
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('user')->andReturn((object) ['id' => '123']);
@@ -123,7 +123,7 @@ class CentrifugoBroadcasterTest extends TestCase
         $this->assertArrayHasKey('node_info', $content);
     }
 
-    public function testAuthWithoutUser(): void
+    public function test_auth_without_user(): void
     {
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('user')->andReturn(null);
@@ -150,7 +150,7 @@ class CentrifugoBroadcasterTest extends TestCase
 
     // ---- validAuthenticationResponse() ----
 
-    public function testValidAuthenticationResponse(): void
+    public function test_valid_authentication_response(): void
     {
         $centrifugo = new Centrifugo([
             'secret' => 'test-secret',

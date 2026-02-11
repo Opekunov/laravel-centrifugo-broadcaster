@@ -35,11 +35,13 @@ class HttpClient
         for ($attempt = 1; $attempt <= $tries; $attempt++) {
             try {
                 $response = $this->makeRequest($url, $context);
+
                 return new HttpResponse($response);
             } catch (\RuntimeException $e) {
                 $lastException = $e;
                 if ($attempt < $tries && $this->isConnectionError($e->getMessage())) {
                     usleep(100000 * $attempt); // 0.1s, 0.2s, 0.3s...
+
                     continue;
                 }
                 break;
@@ -54,15 +56,16 @@ class HttpClient
             throw new CentrifugoException($message, 0, $lastException);
         }
 
-        throw new CentrifugoException('HTTP request failed after ' . $tries . ' attempts');
+        throw new CentrifugoException('HTTP request failed after '.$tries.' attempts');
     }
 
     private function buildHeaders(array $headers): array
     {
         $result = [];
         foreach ($headers as $name => $value) {
-            $result[] = $name . ': ' . $value;
+            $result[] = $name.': '.$value;
         }
+
         return $result;
     }
 
@@ -85,7 +88,7 @@ class HttpClient
                 'verify_peer_name' => $options['verify_ssl'] ?? true,
             ];
 
-            if (!empty($options['ssl_cert'])) {
+            if (! empty($options['ssl_cert'])) {
                 $contextOptions['ssl']['local_cert'] = $options['ssl_cert'];
             }
         }
@@ -100,11 +103,12 @@ class HttpClient
         }, E_WARNING);
 
         try {
+            $http_response_header = [];
             $response = file_get_contents($url, false, $context);
 
             return [
                 'body' => $response,
-                'headers' => $http_response_header ?? [],
+                'headers' => $http_response_header,
             ];
         } finally {
             restore_error_handler();

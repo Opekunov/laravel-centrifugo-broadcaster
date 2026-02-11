@@ -12,10 +12,12 @@ use Opekunov\Centrifugo\Tests\TestCase;
 class CentrifugoBroadcasterIntegrationTest extends TestCase
 {
     private CentrifugoBroadcaster $broadcaster;
+
     private Centrifugo $centrifugo;
+
     private string $centrifugoUrl;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -33,9 +35,9 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
         $this->broadcaster = new CentrifugoBroadcaster($this->centrifugo);
     }
 
-    public function testBroadcastWithRealServer()
+    public function test_broadcast_with_real_server()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -54,13 +56,13 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testAuthWithRealTokenGeneration()
+    public function test_auth_with_real_token_generation()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
-        $user = (object) ['id' => 'integration-user-' . time()];
+        $user = (object) ['id' => 'integration-user-'.time()];
 
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('user')->andReturn($user);
@@ -99,7 +101,7 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
         $this->assertIsArray($responseData['node_info']);
     }
 
-    public function testBroadcastErrorHandling()
+    public function test_broadcast_error_handling()
     {
         // Create a Centrifugo instance with invalid config to trigger errors
         $invalidConfig = [
@@ -117,9 +119,9 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
         $broadcaster->broadcast(['test:error-channel'], 'ErrorEvent', ['message' => 'test']);
     }
 
-    public function testChannelNameFormatting()
+    public function test_channel_name_formatting()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -140,7 +142,7 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testValidAuthenticationResponse()
+    public function test_valid_authentication_response()
     {
         $request = Mockery::mock(Request::class);
         $testResult = ['token' => 'test-token', 'expires_at' => time() + 300];
@@ -150,9 +152,9 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
         $this->assertEquals($testResult, $response);
     }
 
-    public function testAuthWithoutNodeInfo()
+    public function test_auth_without_node_info()
     {
-        if (!$this->isCentrifugoRunning()) {
+        if (! $this->isCentrifugoRunning()) {
             $this->markTestSkipped("Centrifugo server is not running on {$this->centrifugoUrl}");
         }
 
@@ -191,13 +193,14 @@ class CentrifugoBroadcasterIntegrationTest extends TestCase
     {
         try {
             $result = $this->centrifugo->info();
+
             return isset($result['result']);
         } catch (\Throwable $e) {
             return false;
         }
     }
 
-    public function tearDown(): void
+    protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
