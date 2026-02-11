@@ -4,7 +4,9 @@ namespace Opekunov\Centrifugo\Tests\Unit;
 
 use Opekunov\Centrifugo\Centrifugo;
 use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
+use Opekunov\Centrifugo\Exceptions\CentrifugoException;
 use Opekunov\Centrifugo\Http\HttpClient;
+use Opekunov\Centrifugo\Http\HttpResponse;
 use Opekunov\Centrifugo\Tests\TestCase;
 
 class CentrifugoTest extends TestCase
@@ -26,6 +28,13 @@ class CentrifugoTest extends TestCase
     {
         $centrifugo = $this->createCentrifugo();
         $this->assertInstanceOf(Centrifugo::class, $centrifugo);
+    }
+
+    public function test_construction_from_app_config(): void
+    {
+        $centrifugo = new Centrifugo();
+        $this->assertInstanceOf(Centrifugo::class, $centrifugo);
+        $this->assertEquals(300, $centrifugo->getDefaultTokenExpiration());
     }
 
     public function test_construction_with_http_client(): void
@@ -406,6 +415,320 @@ class CentrifugoTest extends TestCase
         }
     }
 
+    // ---- API methods with mock HttpClient ----
+
+    public function test_publish_calls_correct_endpoint_with_params(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->publish('test-channel', ['msg' => 'hello']);
+
+        $this->assertStringEndsWith('/api/publish', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('test-channel', $body['channel']);
+        $this->assertEquals(['msg' => 'hello'], $body['data']);
+    }
+
+    public function test_broadcast_calls_correct_endpoint_with_params(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->broadcast(['ch1', 'ch2'], ['msg' => 'hello']);
+
+        $this->assertStringEndsWith('/api/broadcast', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals(['ch1', 'ch2'], $body['channels']);
+        $this->assertEquals(['msg' => 'hello'], $body['data']);
+    }
+
+    public function test_publish_many_sends_batch_request(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->publishMany([
+            ['channel' => 'ch1', 'data' => ['msg' => 'a']],
+            ['channel' => 'ch2', 'data' => ['msg' => 'b']],
+        ]);
+
+        $this->assertStringEndsWith('/api/batch', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertArrayHasKey('commands', $body);
+        $this->assertCount(2, $body['commands']);
+        $this->assertArrayHasKey('publish', $body['commands'][0]);
+        $this->assertEquals('ch1', $body['commands'][0]['publish']['channel']);
+        $this->assertEquals('ch2', $body['commands'][1]['publish']['channel']);
+    }
+
+    public function test_presence_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['presence' => []]));
+
+        $result = $centrifugo->presence('chat:room');
+
+        $this->assertStringEndsWith('/api/presence', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:room', $body['channel']);
+        $this->assertIsArray($result);
+    }
+
+    public function test_presence_stats_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['num_clients' => 5]));
+
+        $result = $centrifugo->presenceStats('chat:room');
+
+        $this->assertStringEndsWith('/api/presence_stats', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:room', $body['channel']);
+        $this->assertIsArray($result);
+    }
+
+    public function test_history_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['publications' => []]));
+
+        $centrifugo->history('chat:room', 10, null, null, true);
+
+        $this->assertStringEndsWith('/api/history', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:room', $body['channel']);
+        $this->assertEquals(10, $body['limit']);
+        $this->assertTrue($body['reverse']);
+        $this->assertArrayNotHasKey('since', $body);
+    }
+
+    public function test_history_with_since_parameters(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['publications' => []]));
+
+        $centrifugo->history('chat:room', 10, 42, 'abc123');
+
+        $body = json_decode($spy->options['body'], true);
+        $this->assertArrayHasKey('since', $body);
+        $this->assertEquals(42, $body['since']['offset']);
+        $this->assertEquals('abc123', $body['since']['epoch']);
+    }
+
+    public function test_history_remove_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->historyRemove('chat:room');
+
+        $this->assertStringEndsWith('/api/history_remove', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:room', $body['channel']);
+    }
+
+    public function test_unsubscribe_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->unsubscribe('chat:room', 'user1');
+
+        $this->assertStringEndsWith('/api/unsubscribe', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:room', $body['channel']);
+        $this->assertEquals('user1', $body['user']);
+    }
+
+    public function test_disconnect_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->disconnect('user1');
+
+        $this->assertStringEndsWith('/api/disconnect', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('user1', $body['user']);
+    }
+
+    public function test_subscribe_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->subscribe('chat:room', 'user1');
+
+        $this->assertStringEndsWith('/api/subscribe', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:room', $body['channel']);
+        $this->assertEquals('user1', $body['user']);
+        $this->assertArrayNotHasKey('info', $body);
+        $this->assertArrayNotHasKey('data', $body);
+    }
+
+    public function test_subscribe_with_info_and_data(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $info = ['name' => 'Test'];
+        $data = ['welcome' => true];
+        $centrifugo->subscribe('chat:room', 'user1', $info, $data);
+
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals($info, $body['info']);
+        $this->assertEquals($data, $body['data']);
+    }
+
+    public function test_rpc_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['data' => 'pong']));
+
+        $centrifugo->rpc('ping', ['ts' => 123]);
+
+        $this->assertStringEndsWith('/api/rpc', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('ping', $body['method']);
+        $this->assertEquals(['ts' => 123], $body['data']);
+    }
+
+    public function test_channels_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['channels' => []]));
+
+        $centrifugo->channels('chat:*');
+
+        $this->assertStringEndsWith('/api/channels', $spy->url);
+        $body = json_decode($spy->options['body'], true);
+        $this->assertEquals('chat:*', $body['pattern']);
+    }
+
+    public function test_info_calls_correct_endpoint(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse(['nodes' => []]));
+
+        $centrifugo->info();
+
+        $this->assertStringEndsWith('/api/info', $spy->url);
+    }
+
+    // ---- sendData: response handling ----
+
+    public function test_successful_response_returns_decoded_json(): void
+    {
+        $expected = ['result' => ['offset' => 1, 'epoch' => 'abc']];
+        $response = new HttpResponse([
+            'body' => json_encode($expected),
+            'headers' => ['HTTP/1.1 200 OK'],
+        ]);
+        [$centrifugo] = $this->createCentrifugoWithSpy($response);
+
+        $result = $centrifugo->publish('ch', ['data' => 1]);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function test_non_successful_response_returns_error_array(): void
+    {
+        $response = new HttpResponse([
+            'body' => 'Internal Server Error',
+            'headers' => ['HTTP/1.1 500 Internal Server Error'],
+        ]);
+        [$centrifugo] = $this->createCentrifugoWithSpy($response);
+
+        $result = $centrifugo->publish('ch', ['data' => 1]);
+
+        $this->assertArrayHasKey('error', $result);
+        $this->assertEquals(500, $result['error']['code']);
+        $this->assertEquals('HTTP 500', $result['error']['message']);
+        $this->assertEquals('publish', $result['method']);
+    }
+
+    public function test_info_sends_empty_json_object(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->info();
+
+        $this->assertEquals('{}', $spy->options['body']);
+    }
+
+    // ---- sendData: exception handling ----
+
+    public function test_centrifugo_connection_exception_is_rethrown_from_mock(): void
+    {
+        $centrifugo = $this->createCentrifugoWithException(
+            new CentrifugoConnectionException('Connection refused')
+        );
+
+        $this->expectException(CentrifugoConnectionException::class);
+        $this->expectExceptionMessage('Connection refused');
+
+        $centrifugo->publish('ch', ['data' => 1]);
+    }
+
+    public function test_centrifugo_exception_is_rethrown(): void
+    {
+        $centrifugo = $this->createCentrifugoWithException(
+            new CentrifugoException('API error')
+        );
+
+        $this->expectException(CentrifugoException::class);
+        $this->expectExceptionMessage('API error');
+
+        $centrifugo->publish('ch', ['data' => 1]);
+    }
+
+    public function test_generic_exception_wrapped_in_centrifugo_exception(): void
+    {
+        $centrifugo = $this->createCentrifugoWithException(
+            new \RuntimeException('Something unexpected')
+        );
+
+        $this->expectException(CentrifugoException::class);
+        $this->expectExceptionMessage('Something unexpected');
+
+        $centrifugo->publish('ch', ['data' => 1]);
+    }
+
+    // ---- sendData: HTTPS options ----
+
+    public function test_https_request_passes_ssl_options(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy(
+            $this->makeSuccessResponse(),
+            ['url' => 'https://example.com', 'verify' => true]
+        );
+
+        $centrifugo->info();
+
+        $this->assertTrue($spy->options['verify_ssl']);
+    }
+
+    public function test_https_with_ssl_key_passes_cert_option(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy(
+            $this->makeSuccessResponse(),
+            ['url' => 'https://example.com', 'verify' => true, 'ssl_key' => '/path/to/cert.pem']
+        );
+
+        $centrifugo->info();
+
+        $this->assertEquals('/path/to/cert.pem', $spy->options['ssl_cert']);
+    }
+
+    public function test_http_request_does_not_include_ssl_options(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->info();
+
+        $this->assertArrayNotHasKey('verify_ssl', $spy->options);
+        $this->assertArrayNotHasKey('ssl_cert', $spy->options);
+    }
+
+    // ---- sendData: headers ----
+
+    public function test_api_key_sent_in_headers(): void
+    {
+        [$centrifugo, $spy] = $this->createCentrifugoWithSpy($this->makeSuccessResponse());
+
+        $centrifugo->info();
+
+        $this->assertEquals('test-key', $spy->options['headers']['X-API-Key']);
+        $this->assertEquals('application/json', $spy->options['headers']['Content-type']);
+    }
+
     // ---- Helpers ----
 
     private function decodeJwtPayload(string $token): array
@@ -414,5 +737,53 @@ class CentrifugoTest extends TestCase
         $padded = str_pad(strtr($parts[1], '-_', '+/'), strlen($parts[1]) % 4, '=', STR_PAD_RIGHT);
 
         return json_decode(base64_decode($padded), true);
+    }
+
+    private function makeSuccessResponse(array $result = []): HttpResponse
+    {
+        return new HttpResponse([
+            'body' => json_encode(['result' => $result]),
+            'headers' => ['HTTP/1.1 200 OK'],
+        ]);
+    }
+
+    private function createCentrifugoWithSpy(HttpResponse $response, array $config = []): array
+    {
+        $spy = new \stdClass();
+        $spy->url = null;
+        $spy->options = null;
+
+        $httpClient = $this->createMock(HttpClient::class);
+        $httpClient->method('post')
+            ->willReturnCallback(function (string $url, array $options) use ($response, $spy) {
+                $spy->url = $url;
+                $spy->options = $options;
+
+                return $response;
+            });
+
+        $centrifugo = new Centrifugo(array_merge([
+            'secret' => 'test-secret',
+            'apikey' => 'test-key',
+            'url' => 'http://localhost:8001',
+            'token_expire_time' => 300,
+            'show_node_info' => false,
+        ], $config), $httpClient);
+
+        return [$centrifugo, $spy];
+    }
+
+    private function createCentrifugoWithException(\Throwable $exception, array $config = []): Centrifugo
+    {
+        $httpClient = $this->createMock(HttpClient::class);
+        $httpClient->method('post')->willThrowException($exception);
+
+        return new Centrifugo(array_merge([
+            'secret' => 'test-secret',
+            'apikey' => 'test-key',
+            'url' => 'http://localhost:8001',
+            'token_expire_time' => 300,
+            'show_node_info' => false,
+        ], $config), $httpClient);
     }
 }
