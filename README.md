@@ -8,23 +8,25 @@
 <a href="https://github.com/opekunov/laravel-centrifugo-broadcaster/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="Software License"></a>
 </p>
 
-<h1 align="center">Laravel Centrifugo 4-5 Broadcaster</h1>
-<h2 align="center">Centrifugo 4-5 broadcast driver for Laravel 8.75 - 11.x </h2>
+<h1 align="center">Laravel Centrifugo 5-6 Broadcaster</h1>
+<h2 align="center">Centrifugo 5-6 broadcast driver for Laravel 8.75 - 12.x </h2>
 
+> For Centrifugo 4.x use [version 2.x](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/2.x)  
 > For Centrifugo 2.8 - 3.x use [version 1.2.6](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/master)
 
 ## Features
 
-- Compatible with latest [Centrifugo 5.x](https://github.com/centrifugal/centrifugo/) 🚀
+- Compatible with latest [Centrifugo 5.x and 6.x](https://github.com/centrifugal/centrifugo/) 🚀
+- Uses new HTTP API format introduced in Centrifugo 5.x 📡
 - Wrapper over [Centrifugo HTTP API](https://centrifugal.dev/docs/server/server_api/) 🔌
 - Authentication with JWT token (HMAC algorithm) 🗝️
 
 ## Requirements
 
-- PHP >= 8.0
-- Laravel 8.75 - 11.x
-- guzzlehttp/guzzle 6 - 7
-- Centrifugo Server 4.x or newer (see [here](https://github.com/centrifugal/centrifugo))
+- PHP >= 8.0 (including 8.4)
+- Laravel 8.75 - 12.x
+- ext-json
+- Centrifugo Server 5.x or newer (see [here](https://github.com/centrifugal/centrifugo))
  
 ## Installation
 
@@ -107,7 +109,7 @@ BROADCAST_DRIVER=centrifugo
 
 To configure Centrifugo server, read [official documentation](https://centrifugal.dev/docs/getting-started/installation)
 
-For broadcasting events, see [official documentation of laravel](https://laravel.com/docs/9.x/broadcasting)
+For broadcasting events, see [official documentation of laravel](https://laravel.com/docs/broadcasting)
 
 ### Channel authentication example:
 
@@ -116,7 +118,7 @@ Laravel
 ```php
 // routes/channels.php
 
-// IMPORTANT. In Centrifugo 4, the '$' character in front of the private channel is considered obsolete. Do not use it. https://centrifugal.dev/docs/server/channels#private-channel-prefix-
+// In Centrifugo 5+, channel namespaces are separated by ':'. The '$' prefix is not used.
 Broadcast::channel('namespace:channel', function (){
     // Some auth logic for example:
     return \Auth::user()->group === 'private-channel-group';
@@ -129,52 +131,61 @@ Broadcast::channel('namespace:channel-{id}', function ($user, $id){
 
 Frontend. See documentation [centrifugal/centrifuge-js](https://github.com/centrifugal/centrifuge-js)
 
+```bash
+npm install centrifuge
+```
+
 ```js
-// Example:
-import { Centrifuge } from 'centrifuge';
+import { Centrifuge, UnauthorizedError } from 'centrifuge';
 
-// Set the base path of Laravel broadcasting.
-// Don't forget to add 'path' => [..., 'broadcasting/auth'] to your application's cors.php file
-const subscribeTokenEndpoint = 'http://127.0.0.1/broadcasting/auth'
-
-const centrifuge = new Centrifuge('ws://localhost:8001/connection/websocket', {
-  //CONNECTION_TOKEN must be obtained from Centrifuge::generateConnectionToken(...)
+// CONNECTION_TOKEN must be obtained from Centrifugo::generateConnectionToken(...)
+const client = new Centrifuge('ws://localhost:8000/connection/websocket', {
   token: 'CONNECTION_TOKEN'
-})
+});
 
-// Set the subscription
-const sub = centrifuge.newSubscription('test:test', {
-  getToken: function (ctx) {
-    return customGetToken(subscribeTokenEndpoint, ctx);
-  },
-})
+// Connection state events
+client.on('connected', (ctx) => {
+  console.log('Connected:', ctx.client, 'transport:', ctx.transport);
+});
+
+client.on('disconnected', (ctx) => {
+  console.log('Disconnected:', ctx.code, ctx.reason);
+});
 
 // Getting a subscription token from your Laravel application.
-// Important: In this example, getting a subscription token is implemented through basic fetch() without passing parameters to identify the user in your Laravel application. Use methods appropriate for your application
-function customGetToken(endpoint, ctx) {
-  return new Promise((resolve, reject) => {
-    fetch(endpoint, {
-      method: 'POST',
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(ctx)
-    })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Unexpected status code ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        resolve(data.token);
-      })
-      .catch(err => {
-        reject(err);
-      });
+// Don't forget to add 'path' => [..., 'broadcasting/auth'] to your application's cors.php file
+async function getSubscriptionToken(ctx) {
+  const res = await fetch('/broadcasting/auth', {
+    method: 'POST',
+    headers: new Headers({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(ctx),
   });
+  if (!res.ok) {
+    if (res.status === 403) {
+      throw new UnauthorizedError();
+    }
+    throw new Error(`Unexpected status code ${res.status}`);
+  }
+  const data = await res.json();
+  return data.token;
 }
 
+// Subscribe to a private channel
+const sub = client.newSubscription('private:chat', {
+  getToken: getSubscriptionToken,
+});
+
+// Listen for messages
+sub.on('publication', (ctx) => {
+  console.log('New message:', ctx.data);
+});
+
+sub.on('subscribed', (ctx) => {
+  console.log('Subscribed to', ctx.channel);
+});
+
 sub.subscribe();
-centrifuge.connect();
+client.connect();
 ```
 
 ### Broadcasting example
@@ -239,7 +250,6 @@ class SendMessageEvent implements ShouldBroadcastNow
     {
         return new Channel('public:chat');
         // or return new PrivateChannel('private:chat');
-        // in Centrifuge 4 all channels are protected, and the '$' prefix is considered obsolete. https://centrifugal.dev/docs/server/channels#private-channel-prefix-
     }
 }
 
@@ -263,7 +273,7 @@ class ExampleController
     {
         //or $centrifugo = new Centrifugo();
         //or centrifugo()
-        
+
         // Send message into channel
         $centrifugo->publish('news', ['message' => 'Hello world']);
 
@@ -273,8 +283,8 @@ class ExampleController
         ]);
 
         // Generate subscription token
-        $expire = now()->addDay(); //or you can use Unix: $expire = time() + 60 * 60 * 24; 
-        $apiSign = $centrifugo->generateSubscriptionToken((string)Auth::id(), 'channel', $expire, [
+        $expire = now()->addDay(); //or you can use Unix: $expire = time() + 60 * 60 * 24;
+        $token = $centrifugo->generateSubscriptionToken((string)Auth::id(), 'channel', $expire, [
             'name' => Auth::user()->name,
         ]);
 
@@ -288,6 +298,113 @@ class ExampleController
 }
 ```
 
+### History example
+
+Centrifugo allows you to retrieve the history of messages in a channel (the channel must have history configured on the server side).
+
+**Backend** (Laravel):
+
+```php
+// Get the last 10 messages from the channel
+$history = $centrifugo->history('chat:room1', limit: 10);
+
+// Get messages in reverse order (newest first)
+$history = $centrifugo->history('chat:room1', limit: 10, reverse: true);
+
+// Pagination: get messages from a specific position
+$history = $centrifugo->history('chat:room1', limit: 50, offset: 100, epoch: 'EPOCH');
+
+// Remove channel history
+$centrifugo->historyRemove('chat:room1');
+```
+
+**Frontend** (centrifuge-js):
+
+```js
+const sub = client.newSubscription('chat:room1');
+
+sub.on('subscribed', async (ctx) => {
+  // Get the last 50 messages
+  const history = await sub.history({ limit: 50 });
+  history.publications.forEach((pub) => {
+    console.log('Message:', pub.data, 'offset:', pub.offset);
+  });
+
+  // Get messages since a specific position (for pagination)
+  const newMessages = await sub.history({
+    since: { offset: history.offset, epoch: history.epoch },
+    limit: 100,
+  });
+
+  // Get messages in reverse order (newest first)
+  const latest = await sub.history({ limit: 10, reverse: true });
+});
+
+sub.subscribe();
+```
+
+### Presence example
+
+Presence allows you to see which users are currently subscribed to a channel (must be enabled in Centrifugo server config).
+
+**Backend** (Laravel):
+
+```php
+// Get full presence info (all clients with their data)
+$presence = $centrifugo->presence('chat:room1');
+
+// Get short presence stats (number of clients and unique users)
+$stats = $centrifugo->presenceStats('chat:room1');
+```
+
+**Frontend** (centrifuge-js):
+
+```js
+const sub = client.newSubscription('chat:room1', {
+  joinLeave: true, // Enable join/leave events
+});
+
+// Track who is online
+sub.on('subscribed', async (ctx) => {
+  const presence = await sub.presence();
+  for (const [clientId, info] of Object.entries(presence.clients)) {
+    console.log(`Online: ${info.user} (${clientId})`);
+  }
+});
+
+// Real-time join/leave events
+sub.on('join', (ctx) => {
+  console.log('User joined:', ctx.info.user);
+});
+
+sub.on('leave', (ctx) => {
+  console.log('User left:', ctx.info.user);
+});
+
+sub.subscribe();
+```
+
+### Server-side subscribe/unsubscribe example
+
+You can manage subscriptions from the backend without client involvement:
+
+```php
+// Subscribe a user to a channel from the server side
+$centrifugo->subscribe('notifications:user1', 'user1');
+
+// With additional info and data
+$centrifugo->subscribe('notifications:user1', 'user1',
+    info: ['role' => 'admin'],
+    data: ['message' => 'Welcome!']
+);
+
+// Unsubscribe a user from a channel
+$centrifugo->unsubscribe('notifications:user1', 'user1');
+
+// Disconnect a user entirely
+$centrifugo->disconnect('user1');
+```
+
 ### Available methods
 
 | Name                                                                                                                                  | Description                                                                           |
@@ -297,13 +414,15 @@ class ExampleController
 | publishMany(array $data)                                                                                                              | Send multiple data to multiple channels. $data - array of data arrays [channel, data] |
 | presence(string $channel)                                                                                                             | Get channel presence information (all clients currently subscribed on this channel).  |
 | presenceStats(string $channel)                                                                                                        | Get channel presence information in short form (number of clients).                   |
-| history(string $channel)                                                                                                              | Get channel history information (list of last messages sent into channel).            |
+| history(string $channel, int $limit = 0, ?int $offset = null, ?string $epoch = null, bool $reverse = false)                           | Get channel history information (list of last messages sent into channel).            |
 | historyRemove(string $channel)                                                                                                        | Remove channel history information.                                                   |
+| subscribe(string $channel, string $user, array $info = [], array $data = [])                                                          | Subscribe user to channel (server-side).                                              |
 | unsubscribe(string $channel, string $user)                                                                                            | Unsubscribe user from channel.                                                        |
 | disconnect(string $userId)                                                                                                            | Disconnect user by it's ID.                                                           |
-| channels()                                                                                                                            | Get channels information (list of currently active channels).                         |
+| rpc(string $method, array $data = [])                                                                                                 | Remote procedure call.                                                                |
+| channels(string $pattern = '')                                                                                                        | Get channels information (list of currently active channels).                         |
 | info()                                                                                                                                | Get stats information about running server nodes.                                     |
-| generateConnectionToken(string&#124;int $userId, int&#124;Carbon $exp = 0, array $info = [])                                          | Generate connection token.                                                            |
+| generateConnectionToken(string&#124;int $userId, int&#124;Carbon $exp = 0, array $info = [], array $channels = [])                    | Generate connection token.                                                            |
 | generateSubscriptionToken(string&#124;int $userId, string $channel, int&#124;Carbon $exp = 0, array $info = [], array $override = []) | Generate subscription token.                                                          |
 
 ## License

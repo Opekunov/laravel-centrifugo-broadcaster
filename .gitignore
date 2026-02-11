@@ -1,5 +1,8 @@
 .idea
+.phpunit.cache/
 .phpunit.result.cache
 /composer.lock
 /vendor/
 /centrifugo/
+/.claude/
+/CLAUDE.md

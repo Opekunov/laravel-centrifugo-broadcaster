@@ -1,14 +1,44 @@
-version: '3'
 services:
-  centrifugo:
-    container_name: centrifugo
-    image: centrifugo/centrifugo:v4
+  # Centrifugo v5 for testing
+  centrifugo-v5:
+    container_name: centrifugo-v5
+    image: centrifugo/centrifugo:v5
     volumes:
       - ./config.json:/centrifugo/config.json
-    command: centrifugo -c config.json
+    command: centrifugo --config=config.json
     ports:
       - "8001:8000"
     ulimits:
       nofile:
         soft: 65535
         hard: 65535
+    environment:
+      - CENTRIFUGO_LOG_LEVEL=debug
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # Centrifugo v6 for testing
+  centrifugo-v6:
+    container_name: centrifugo-v6
+    image: centrifugo/centrifugo:v6
+    volumes:
+      - ./config-v6.json:/centrifugo/config.json
+    command: centrifugo --config=config.json
+    ports:
+      - "8002:8000"
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+      - CENTRIFUGO_LOG_LEVEL=debug
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s

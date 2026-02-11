@@ -12,11 +12,19 @@ interface CentrifugoInterface
 
     public function broadcast(array $channels, array $data): array;
 
+    public function publishMany(array $params): array;
+
     public function presence(string $channel): array;
 
     public function presenceStats(string $channel): array;
 
-    public function history(string $channel): array;
+    public function history(
+        string $channel,
+        int $limit = 0,
+        ?int $offset = null,
+        ?string $epoch = null,
+        bool $reverse = false
+    ): array;
 
     public function historyRemove(string $channel): array;
 
@@ -24,7 +32,11 @@ interface CentrifugoInterface
 
     public function disconnect(string $userId): array;
 
-    public function channels(): array;
+    public function subscribe(string $channel, string $user, array $info = [], array $data = []): array;
+
+    public function rpc(string $method, array $data = []): array;
+
+    public function channels(string $pattern = ''): array;
 
     public function info(): array;
 
@@ -40,7 +52,10 @@ interface CentrifugoInterface
         string|int $userId,
         int|Carbon $exp = 0,
         array $info = [],
+        array $channels = []
     ): string;
 
     public function showNodeInfo(): bool;
+
+    public function getDefaultTokenExpiration();
 }

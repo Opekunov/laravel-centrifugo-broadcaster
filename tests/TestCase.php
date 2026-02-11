@@ -7,12 +7,9 @@ use Opekunov\Centrifugo\CentrifugoServiceProvider;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
-    /**
-     * @var Centrifugo
-     */
     protected Centrifugo $centrifuge;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->centrifuge = $this->app->make('centrifugo');
@@ -25,14 +22,16 @@ class TestCase extends \Orchestra\Testbench\TestCase
         ];
     }
 
-    protected function getEnvironmentSetUp($app)
+    protected function getEnvironmentSetUp($app): void
     {
         $app['config']->set('broadcasting.default', 'centrifugo');
         $app['config']->set('broadcasting.connections.centrifugo', [
             'driver' => 'centrifugo',
             'secret' => 'bbe7d157-a253-4094-9759-06a8236543f9',
             'apikey' => 'd7627bb6-2292-4911-82e1-615c0ed3eebb',
-            'url'    => 'http://host.docker.internal:8001',
+            'url'    => $_ENV['CENTRIFUGO_URL'] ?? 'http://localhost:8001',
+            'token_expire_time' => 300,
+            'show_node_info' => false,
         ]);
     }
 }

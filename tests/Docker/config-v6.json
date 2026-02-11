@@ -1,0 +1,46 @@
+{
+  "client": {
+    "token": {
+      "hmac_secret_key": "bbe7d157-a253-4094-9759-06a8236543f9"
+    },
+    "allowed_origins": ["*"]
+  },
+  "http_api": {
+    "key": "d7627bb6-2292-4911-82e1-615c0ed3eebb",
+    "insecure": true
+  },
+  "log": {
+    "level": "debug"
+  },
+  "health": {
+    "enabled": true
+  },
+  "channel": {
+    "without_namespace": {
+      "presence": true,
+      "history_size": 10,
+      "history_ttl": "300s",
+      "allow_subscribe_for_client": true
+    },
+    "namespaces": [
+      {
+        "name": "test",
+        "presence": true,
+        "history_size": 10,
+        "history_ttl": "300s"
+      },
+      {
+        "name": "public",
+        "presence": true,
+        "history_size": 10,
+        "history_ttl": "300s"
+      },
+      {
+        "name": "personal",
+        "presence": true,
+        "history_size": 10,
+        "history_ttl": "300s"
+      }
+    ]
+  }
+}

@@ -5,24 +5,17 @@ declare(strict_types=1);
 namespace Opekunov\Centrifugo;
 
 use Carbon\Carbon;
-use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\TransferException;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
 use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
 use Opekunov\Centrifugo\Exceptions\CentrifugoException;
-use Psr\Http\Message\ResponseInterface;
+use Opekunov\Centrifugo\Http\HttpClient;
+use Opekunov\Centrifugo\Http\HttpResponse;
 
 class Centrifugo implements CentrifugoInterface
 {
     const API_PATH = '/api';
 
-    /**
-     * @var HttpClient
-     */
     protected HttpClient $httpClient;
 
     /**
@@ -38,7 +31,7 @@ class Centrifugo implements CentrifugoInterface
      *
      * @throws BindingResolutionException
      */
-    public function __construct(array $config = null, HttpClient $httpClient = null)
+    public function __construct(?array $config = null, ?HttpClient $httpClient = null)
     {
         $this->httpClient = $httpClient ?? new HttpClient();
         if (!$config) {
@@ -112,7 +105,8 @@ class Centrifugo implements CentrifugoInterface
      */
     protected function send(string $method, array $params = []): array
     {
-        $json = json_encode(['method' => $method, 'params' => $params]);
+        // Ensure empty arrays become empty objects in JSON
+        $json = json_encode($params ?: (object)[]);
 
         return $this->sendData($method, $json);
     }
@@ -132,45 +126,48 @@ class Centrifugo implements CentrifugoInterface
     {
         $headers = [
             'Content-type'  => 'application/json',
-            'Authorization' => 'apikey '.$this->config['apikey'],
+            'X-API-Key' => $this->config['apikey'],
         ];
 
         try {
-            $url = parse_url($this->prepareUrl());
+            $url = $this->prepareUrl($method);
+            
+            $options = [
+                'headers' => $headers,
+                'body' => $json,
+                'timeout' => $this->config['timeout'],
+                'tries' => intval($this->config['tries'] ?? 1),
+                'url' => $url,
+            ];
 
-            $config = collect([
-                'headers'     => $headers,
-                'body'        => $json,
-                'http_errors' => true,
-                'timeout'     => $this->config['timeout'],
-            ]);
-
-            if ($url['scheme'] == 'https') {
-                $config->put('verify', collect($this->config)->get('verify', false));
-
-                if (collect($this->config)->get('ssl_key')) {
-                    $config->put('ssl_key', collect($this->config)->get('ssl_key'));
+            $parsedUrl = parse_url($url);
+            if (($parsedUrl['scheme'] ?? '') === 'https') {
+                $options['verify_ssl'] = $this->config['verify'] ?? true;
+                if (!empty($this->config['ssl_key'])) {
+                    $options['ssl_cert'] = $this->config['ssl_key'];
                 }
             }
 
-            $tries = intval($this->config['tries'] ?? 1);
-
-            $response = $this->postRequest($this->prepareUrl(), $config->toArray(), $tries);
-
-            $result = json_decode((string) $response->getBody(), true);
-        } catch (ClientException $e) {
-            $result = [
-                'method' => $method,
-                'error'  => [
-                    'message' => $e->getMessage(),
-                    'code'    => $e->getCode(),
-                ],
-                'body'   => $json,
-            ];
-        } catch (ConnectException $e) {
-            throw new CentrifugoConnectionException($e->getMessage());
-        } catch (GuzzleException $e) {
-            throw new CentrifugoException($e->getMessage());
+            $response = $this->httpClient->post($url, $options);
+            
+            if (!$response->isSuccessful()) {
+                $result = [
+                    'method' => $method,
+                    'error'  => [
+                        'message' => 'HTTP ' . $response->getStatusCode(),
+                        'code'    => $response->getStatusCode(),
+                    ],
+                    'body'   => $json,
+                ];
+            } else {
+                $result = json_decode($response->getBody(), true);
+            }
+        } catch (CentrifugoConnectionException $e) {
+            throw $e;
+        } catch (CentrifugoException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new CentrifugoException($e->getMessage(), 0, $e);
         }
 
         return $result ?? [];
@@ -179,9 +176,11 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Prepare URL to send the http request.
      *
+     * @param string|null $method API method name for v5+ format
+     *
      * @return string
      */
-    protected function prepareUrl(): string
+    protected function prepareUrl(?string $method = null): string
     {
         $address = rtrim($this->config['url'], '/');
         $apiPath = $this->config['api_path'] ?? self::API_PATH;
@@ -190,34 +189,14 @@ class Centrifugo implements CentrifugoInterface
             $address .= $apiPath;
         }
 
+        // Use new v5+ API format: /api/{method}
+        if ($method !== null) {
+            $address .= '/' . $method;
+        }
+
         return $address;
     }
 
-    /**
-     * Send request to centrifugo API.
-     *
-     * @param string $url
-     * @param array  $configs
-     * @param int    $tries
-     * @param int    $retriesCounter
-     *
-     * @throws GuzzleException
-     *
-     * @return ResponseInterface
-     */
-    private function postRequest(string $url, array $configs, int $tries = 1, int $retriesCounter = 0): ResponseInterface
-    {
-        try {
-            return $this->httpClient->post($url, $configs);
-        } catch (ClientException|TransferException|ConnectException $e) {
-            $retriesCounter++;
-            if ($retriesCounter < $tries) {
-                return $this->postRequest($url, $configs, $tries, $retriesCounter);
-            }
-
-            throw $e;
-        }
-    }
 
     /**
      * Send multiple message into multiple channel.
@@ -237,6 +216,7 @@ class Centrifugo implements CentrifugoInterface
 
     /**
      * Send many messages per one request to centrifugo server.
+     * Uses the new batch API format for v5+.
      *
      * @param       $method
      * @param array $params
@@ -248,13 +228,15 @@ class Centrifugo implements CentrifugoInterface
      */
     protected function sendMany($method, array $params = []): array
     {
-        $json = '';
+        // Use new batch format for v5+
+        $commands = [];
         foreach ($params as $param) {
-            $json .= json_encode(['method' => $method, 'params' => $param])."\r\n";
+            $commands[] = [$method => $param];
         }
-        $json = trim($json);
+        
+        $json = json_encode(['commands' => $commands]);
 
-        return $this->sendData($method, $json);
+        return $this->sendData('batch', $json);
     }
 
     /**
@@ -308,16 +290,34 @@ class Centrifugo implements CentrifugoInterface
     /**
      * Get channel history information (list of last messages sent into channel).
      *
-     * @param string $channel
+     * @param string      $channel
+     * @param int         $limit   Limit number of returned publications (0 = no limit)
+     * @param int|null    $offset  Stream position offset for pagination
+     * @param string|null $epoch   Stream position epoch for pagination
+     * @param bool        $reverse Return publications in reverse order
      *
      * @throws CentrifugoConnectionException
      * @throws CentrifugoException
      *
      * @return array
      */
-    public function history(string $channel): array
-    {
-        return $this->send('history', ['channel' => $channel]);
+    public function history(
+        string $channel,
+        int $limit = 0,
+        ?int $offset = null,
+        ?string $epoch = null,
+        bool $reverse = false
+    ): array {
+        $params = ['channel' => $channel, 'limit' => $limit, 'reverse' => $reverse];
+
+        if ($offset !== null || $epoch !== null) {
+            $params['since'] = [
+                'offset' => $offset,
+                'epoch'  => $epoch,
+            ];
+        }
+
+        return $this->send('history', $params);
     }
 
     /**
@@ -369,6 +369,52 @@ class Centrifugo implements CentrifugoInterface
     public function disconnect(string $userId): array
     {
         return $this->send('disconnect', ['user' => (string) $userId]);
+    }
+
+    /**
+     * Subscribe user to a channel (server-side).
+     *
+     * @param string $channel
+     * @param string $user
+     * @param array  $info    Custom data to attach to subscription
+     * @param array  $data    Custom subscription data sent to client
+     *
+     * @throws CentrifugoConnectionException
+     * @throws CentrifugoException
+     *
+     * @return array
+     */
+    public function subscribe(string $channel, string $user, array $info = [], array $data = []): array
+    {
+        $params = [
+            'channel' => $channel,
+            'user'    => $user,
+        ];
+
+        if (!empty($info)) {
+            $params['info'] = $info;
+        }
+        if (!empty($data)) {
+            $params['data'] = $data;
+        }
+
+        return $this->send('subscribe', $params);
+    }
+
+    /**
+     * Remote procedure call.
+     *
+     * @param string $method RPC method name
+     * @param array  $data   RPC data
+     *
+     * @throws CentrifugoConnectionException
+     * @throws CentrifugoException
+     *
+     * @return array
+     */
+    public function rpc(string $method, array $data = []): array
+    {
+        return $this->send('rpc', ['method' => $method, 'data' => $data]);
     }
 
     /**
@@ -432,7 +478,7 @@ class Centrifugo implements CentrifugoInterface
             $payload['info'] = $info;
         }
         if (!empty($override)) {
-            $payload['override'] = $info;
+            $payload['override'] = $override;
         }
 
         return $this->createJWTToken($payload);

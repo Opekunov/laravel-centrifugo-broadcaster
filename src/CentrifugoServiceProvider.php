@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Opekunov\Centrifugo;
 
-use GuzzleHttp\Client as HttpClient;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Support\ServiceProvider;
 use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
+use Opekunov\Centrifugo\Http\HttpClient;
 
 class CentrifugoServiceProvider extends ServiceProvider
 {

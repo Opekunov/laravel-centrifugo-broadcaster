@@ -81,7 +81,11 @@ class CentrifugoBroadcaster extends Broadcaster
             return str_replace('private-', '', (string) $channel);
         }, $channels);
 
-        $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
+        try {
+            $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
+        } catch (\Opekunov\Centrifugo\Exceptions\CentrifugoException $e) {
+            throw new BroadcastException($e->getMessage(), $e->getCode(), $e);
+        }
 
         if (!isset($response['error'])) {
             return;
