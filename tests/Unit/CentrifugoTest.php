@@ -32,7 +32,7 @@ class CentrifugoTest extends TestCase
 
     public function test_construction_from_app_config(): void
     {
-        $centrifugo = new Centrifugo();
+        $centrifugo = new Centrifugo;
         $this->assertInstanceOf(Centrifugo::class, $centrifugo);
         $this->assertEquals(300, $centrifugo->getDefaultTokenExpiration());
     }
@@ -749,7 +749,7 @@ class CentrifugoTest extends TestCase
 
     private function createCentrifugoWithSpy(HttpResponse $response, array $config = []): array
     {
-        $spy = new \stdClass();
+        $spy = new \stdClass;
         $spy->url = null;
         $spy->options = null;
 

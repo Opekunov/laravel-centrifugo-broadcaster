@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Mockery;
 use Opekunov\Centrifugo\Centrifugo;
 use Opekunov\Centrifugo\CentrifugoBroadcaster;
+use Opekunov\Centrifugo\Exceptions\CentrifugoException;
 use Opekunov\Centrifugo\Tests\TestCase;
 
 class CentrifugoBroadcasterTest extends TestCase
@@ -146,6 +147,54 @@ class CentrifugoBroadcasterTest extends TestCase
 
         $response = $broadcaster->auth($request);
         $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    public function test_broadcast_throws_broadcast_exception_on_centrifugo_exception(): void
+    {
+        $mockCentrifugo = Mockery::mock(Centrifugo::class);
+        $mockCentrifugo->shouldReceive('broadcast')
+            ->once()
+            ->andThrow(new CentrifugoException('Connection failed'));
+
+        $broadcaster = new CentrifugoBroadcaster($mockCentrifugo);
+
+        $this->expectException(BroadcastException::class);
+        $this->expectExceptionMessage('Connection failed');
+
+        $broadcaster->broadcast(['test-channel'], 'test-event', ['message' => 'Hello']);
+    }
+
+    // ---- auth() with info exception ----
+
+    public function test_auth_with_node_info_handles_info_exception(): void
+    {
+        $request = Mockery::mock(Request::class);
+        $request->shouldReceive('user')->andReturn((object) ['id' => '123']);
+        $request->shouldReceive('get')->with('channel')->andReturn('test-channel');
+
+        $mockCentrifugo = Mockery::mock(Centrifugo::class);
+        $mockCentrifugo->shouldReceive('showNodeInfo')->andReturn(true);
+        $mockCentrifugo->shouldReceive('info')
+            ->once()
+            ->andThrow(new CentrifugoException('Server unavailable'));
+        $mockCentrifugo->shouldReceive('getDefaultTokenExpiration')->andReturn(300);
+        $mockCentrifugo->shouldReceive('generateSubscriptionToken')
+            ->once()
+            ->andReturn('test-token');
+
+        $broadcaster = Mockery::mock(CentrifugoBroadcaster::class, [$mockCentrifugo])
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+        $broadcaster->shouldReceive('verifyUserCanAccessChannel')
+            ->once()
+            ->andReturnNull();
+
+        $response = $broadcaster->auth($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $content = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('node_info', $content);
+        $this->assertEquals('Server unavailable', $content['node_info']['error']);
     }
 
     // ---- validAuthenticationResponse() ----
