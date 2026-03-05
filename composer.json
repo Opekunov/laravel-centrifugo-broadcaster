@@ -28,15 +28,15 @@
     },
     "require": {
         "php": "^8.0|^8.1|^8.2|^8.3|^8.4",
-        "laravel/framework": "^8.75|^9.0|^10.0|^11.0|^12.0",
+        "laravel/framework": "^8.75|^9.0|^10.0|^11.0|^12.0|^13.0",
         "ext-json": "*"
     },
     "require-dev": {
         "larastan/larastan": "^2.0|^3.0",
         "laravel/pint": "^1.0",
         "mockery/mockery": "^1.5",
-        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0",
-        "phpunit/phpunit": "^9.5|^10.5|^11.0"
+        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^9.5|^10.5|^11.0|^12.5.12"
     },
     "autoload": {
         "psr-4": {
@@ -68,7 +68,10 @@
         "test:docker": "cd tests/Docker && docker compose up -d && cd ../.. && php tests/Docker/wait-for-server.php http://localhost:8001 http://localhost:8002 && CENTRIFUGO_URL=http://localhost:8001 phpunit tests/Integration/; v5=$?; CENTRIFUGO_URL=http://localhost:8002 phpunit tests/Integration/; v6=$?; cd tests/Docker && docker compose down; exit $((v5 + v6))",
         "test:docker:v5": "cd tests/Docker && docker compose up -d centrifugo-v5 && cd ../.. && php tests/Docker/wait-for-server.php http://localhost:8001 && CENTRIFUGO_URL=http://localhost:8001 phpunit tests/Integration/; rc=$?; cd tests/Docker && docker compose down; exit $rc",
         "test:docker:v6": "cd tests/Docker && docker compose up -d centrifugo-v6 && cd ../.. && php tests/Docker/wait-for-server.php http://localhost:8002 && CENTRIFUGO_URL=http://localhost:8002 phpunit tests/Integration/; rc=$?; cd tests/Docker && docker compose down; exit $rc",
-        "test:all": ["@test:unit", "@test:integration"],
+        "test:all": [
+            "@test:unit",
+            "@test:integration"
+        ],
         "test:security": "phpunit tests/Unit/SecurityTest.php",
         "test:http": "phpunit tests/Unit/HttpClientTest.php",
         "lint": "pint --test",
