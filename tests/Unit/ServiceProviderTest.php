@@ -2,7 +2,9 @@
 
 namespace Opekunov\Centrifugo\Tests\Unit;
 
+use Illuminate\Broadcasting\BroadcastManager;
 use Opekunov\Centrifugo\Centrifugo;
+use Opekunov\Centrifugo\CentrifugoBroadcaster;
 use Opekunov\Centrifugo\Contracts\CentrifugoInterface;
 use Opekunov\Centrifugo\Tests\TestCase;
 
@@ -30,10 +32,10 @@ class ServiceProviderTest extends TestCase
 
     public function test_broadcast_driver_registered(): void
     {
-        $manager = $this->app->make(\Illuminate\Broadcasting\BroadcastManager::class);
+        $manager = $this->app->make(BroadcastManager::class);
         $driver = $manager->connection('centrifugo');
 
-        $this->assertInstanceOf(\Opekunov\Centrifugo\CentrifugoBroadcaster::class, $driver);
+        $this->assertInstanceOf(CentrifugoBroadcaster::class, $driver);
     }
 
     public function test_configuration_is_applied(): void

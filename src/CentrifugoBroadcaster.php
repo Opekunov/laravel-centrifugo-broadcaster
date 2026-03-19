@@ -73,7 +73,7 @@ class CentrifugoBroadcaster extends Broadcaster
 
         try {
             $response = $this->centrifugo->broadcast($this->formatChannels($channels), $payload);
-        } catch (\Opekunov\Centrifugo\Exceptions\CentrifugoException $e) {
+        } catch (CentrifugoException $e) {
             throw new BroadcastException($e->getMessage(), $e->getCode(), $e);
         }
 

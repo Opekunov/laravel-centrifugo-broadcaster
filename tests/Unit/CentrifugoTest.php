@@ -2,6 +2,7 @@
 
 namespace Opekunov\Centrifugo\Tests\Unit;
 
+use Carbon\Carbon;
 use Opekunov\Centrifugo\Centrifugo;
 use Opekunov\Centrifugo\Exceptions\CentrifugoConnectionException;
 use Opekunov\Centrifugo\Exceptions\CentrifugoException;
@@ -303,7 +304,7 @@ class CentrifugoTest extends TestCase
     public function test_connection_token_with_carbon_exp_includes_claim(): void
     {
         $centrifugo = $this->createCentrifugo();
-        $carbon = \Carbon\Carbon::now()->addHour();
+        $carbon = Carbon::now()->addHour();
 
         $token = $centrifugo->generateConnectionToken('user123', $carbon);
 
