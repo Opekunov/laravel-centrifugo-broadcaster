@@ -37,21 +37,27 @@ Require this package with composer:
 composer req opekunov/laravel-centrifugo-broadcaster
 ```
 
-Open your `config/app.php` and uncomment this line:
+**Laravel 10 and below:** Open your `config/app.php` and uncomment `BroadcastServiceProvider`:
 
 ```php
 return [
 
     // .... //
-    
-    'providers' => [    
+
+    'providers' => [
         // Uncomment BroadcastServiceProvider
         App\Providers\BroadcastServiceProvider::class,
     ],
-    
+
     // .... //
-    
+
 ];
+```
+
+**Laravel 11+:** Run the install command which will automatically create the necessary configuration:
+
+```bash
+php artisan install:broadcasting
 ```
 
 Open your `config/broadcasting.php` and add new `connection` like this:
@@ -100,8 +106,14 @@ CENTRIFUGO_TRIES=1
 CENTRIFUGO_TOKEN_EXPIRE=120
 ```
 
-Don't forget to change `BROADCAST_DRIVER` setting in .env file!
+Don't forget to change the broadcast driver setting in your `.env` file!
 
+**Laravel 11+:**
+```
+BROADCAST_CONNECTION=centrifugo
+```
+
+**Laravel 10 and below:**
 ```
 BROADCAST_DRIVER=centrifugo
 ```

@@ -38,21 +38,27 @@
 composer req opekunov/laravel-centrifugo-broadcaster
 ```
 
-Откройте ваш `config/app.php` и раскомментируйте следующую строку:
+**Laravel 10 и ниже:** Откройте ваш `config/app.php` и раскомментируйте `BroadcastServiceProvider`:
 
 ```php
 return [
 
     // .... //
-    
-    'providers' => [    
+
+    'providers' => [
         // Uncomment BroadcastServiceProvider
         App\Providers\BroadcastServiceProvider::class,
     ],
-    
+
     // .... //
-    
+
 ];
+```
+
+**Laravel 11+:** Выполните команду установки, которая автоматически создаст необходимую конфигурацию:
+
+```bash
+php artisan install:broadcasting
 ```
 
 Откройте ваш `config/broadcasting.php` и добавьте туда новое подключение (`connections`):
@@ -101,8 +107,14 @@ CENTRIFUGO_TRIES=1
 CENTRIFUGO_TOKEN_EXPIRE=120
 ```
 
-Не забудьте изменить параметр `BROADCAST_DRIVER` в файле .env!
+Не забудьте изменить параметр broadcast-драйвера в файле `.env`!
 
+**Laravel 11+:**
+```
+BROADCAST_CONNECTION=centrifugo
+```
+
+**Laravel 10 и ниже:**
 ```
 BROADCAST_DRIVER=centrifugo
 ```
