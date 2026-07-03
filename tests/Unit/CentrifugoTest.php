@@ -361,58 +361,81 @@ class CentrifugoTest extends TestCase
 
     // ---- Timeout & retries ----
 
+    /**
+     * Starts a local TCP server that accepts connections but never sends a
+     * response, so the HTTP client's read timeout triggers deterministically
+     * without relying on any external service.
+     *
+     * @return array{0: resource, 1: string} the server socket and its http:// URL
+     */
+    private function startBlackholeServer(): array
+    {
+        $server = @stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
+
+        if ($server === false) {
+            $this->markTestSkipped("Unable to start local test server: {$errstr} ({$errno})");
+        }
+
+        return [$server, 'http://'.stream_socket_get_name($server, false)];
+    }
+
     public function test_timeout_function(): void
     {
-        $timeout = 3;
-        $delta = 0.5;
-
-        $badCentrifugo = new Centrifugo([
-            'driver' => 'centrifugo',
-            'secret' => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
-            'apikey' => '0c951315-be0e-4516-b99e-05e60b0cc307_',
-            'api_path' => '',
-            'url' => 'https://httpstat.us/200?sleep=20000',
-            'timeout' => $timeout,
-            'tries' => 1,
-        ]);
-
-        $start = microtime(true);
-        $this->expectException(CentrifugoConnectionException::class);
+        [$server, $url] = $this->startBlackholeServer();
+        $timeout = 1;
 
         try {
-            $badCentrifugo->publish('test-channel', ['event' => 'test-event']);
-        } catch (\Exception $e) {
-            $eval = microtime(true) - $start;
-            $this->assertTrue($eval < $timeout + $delta);
-            throw $e;
+            $badCentrifugo = $this->createCentrifugo([
+                'url' => $url,
+                'timeout' => $timeout,
+                'tries' => 1,
+            ]);
+
+            $start = microtime(true);
+
+            try {
+                $badCentrifugo->publish('test-channel', ['event' => 'test-event']);
+                $this->fail('Expected CentrifugoConnectionException was not thrown');
+            } catch (CentrifugoConnectionException $e) {
+                $elapsed = microtime(true) - $start;
+
+                // The read timeout must actually engage (~$timeout seconds) instead of hanging.
+                $this->assertGreaterThanOrEqual($timeout - 0.5, $elapsed);
+                $this->assertLessThan($timeout + 2.0, $elapsed);
+            }
+        } finally {
+            fclose($server);
         }
     }
 
     public function test_tries_function(): void
     {
+        [$server, $url] = $this->startBlackholeServer();
         $timeout = 1;
         $tries = 3;
-        $delta = 2.0;
-
-        $badCentrifugo = new Centrifugo([
-            'driver' => 'centrifugo',
-            'secret' => 'd55bf295-bee6-4259-8912-0a58f44ed30e',
-            'apikey' => '0c951315-be0e-4516-b99e-05e60b0cc307_',
-            'api_path' => '',
-            'url' => 'https://httpstat.us/200?sleep=20000',
-            'timeout' => $timeout,
-            'tries' => $tries,
-        ]);
-
-        $start = microtime(true);
-        $this->expectException(CentrifugoConnectionException::class);
 
         try {
-            $badCentrifugo->publish('test-channel', ['event' => 'test-event']);
-        } catch (\Exception $e) {
-            $eval = microtime(true) - $start;
-            $this->assertTrue($eval < ($timeout + $delta) * $tries);
-            throw $e;
+            $badCentrifugo = $this->createCentrifugo([
+                'url' => $url,
+                'timeout' => $timeout,
+                'tries' => $tries,
+            ]);
+
+            $start = microtime(true);
+
+            try {
+                $badCentrifugo->publish('test-channel', ['event' => 'test-event']);
+                $this->fail('Expected CentrifugoConnectionException was not thrown');
+            } catch (CentrifugoConnectionException $e) {
+                $elapsed = microtime(true) - $start;
+
+                // Every one of the $tries attempts must time out, so the total
+                // elapsed time is at least $tries * $timeout (plus retry backoff).
+                $this->assertGreaterThanOrEqual($tries * $timeout - 0.5, $elapsed);
+                $this->assertLessThan($tries * $timeout + 3.0, $elapsed);
+            }
+        } finally {
+            fclose($server);
         }
     }
 

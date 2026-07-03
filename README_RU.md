@@ -10,7 +10,7 @@
 </p>
 
 <h1 align="center">Laravel Centrifugo 5-6 Broadcaster</h1>
-<h2 align="center">Centrifugo 5-6 broadcast драйвер для Laravel 8.75 - 12.x </h2>
+<h2 align="center">Centrifugo 5-6 broadcast драйвер для Laravel 8.75 - 13.x </h2>
 
 > Для Centrifugo 4.x используйте [версию 2.x](https://github.com/Opekunov/laravel-centrifugo-broadcaster/releases/tag/v2.3)  
 > Для Centrifugo 2.8 - 3.x используйте [версию 1.2.6](https://github.com/Opekunov/laravel-centrifugo-broadcaster/tree/master)
@@ -26,7 +26,7 @@
 ## Требования
 
 - PHP >= 8.0 (включая 8.4)
-- Laravel 8.75 - 12.x
+- Laravel 8.75 - 13.x
 - Centrifugo Сервер 5.x или новее (см. [здесь](https://github.com/centrifugal/centrifugo))
 - Расширение ext-json
 

@@ -1,7 +1,7 @@
 {
     "name": "opekunov/laravel-centrifugo-broadcaster",
     "type": "library",
-    "description": "Centrifugo broadcaster for Laravel 8.75-11.x and Centrifugo >= 5.0",
+    "description": "Centrifugo broadcaster for Laravel 8.75-13.x and Centrifugo >= 5.0",
     "keywords": [
         "laravel-broadcaster",
         "broadcaster",
@@ -28,15 +28,15 @@
     },
     "require": {
         "php": "^8.0|^8.1|^8.2|^8.3|^8.4",
-        "laravel/framework": "^8.75|^9.0|^10.0|^11.0|^12.0",
+        "laravel/framework": "^8.75|^9.0|^10.0|^11.0|^12.0|^13.0",
         "ext-json": "*"
     },
     "require-dev": {
         "larastan/larastan": "^2.0|^3.0",
         "laravel/pint": "^1.0",
         "mockery/mockery": "^1.5",
-        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0",
-        "phpunit/phpunit": "^9.5|^10.5|^11.0"
+        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^9.5|^10.5|^11.0|^12.5.12"
     },
     "autoload": {
         "psr-4": {
