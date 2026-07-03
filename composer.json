@@ -1,7 +1,7 @@
 {
     "name": "opekunov/laravel-centrifugo-broadcaster",
     "type": "library",
-    "description": "Centrifugo broadcaster for Laravel 8.75-11.x and Centrifugo >= 5.0",
+    "description": "Centrifugo broadcaster for Laravel 8.75-13.x and Centrifugo >= 5.0",
     "keywords": [
         "laravel-broadcaster",
         "broadcaster",
